@@ -746,7 +746,7 @@
     {
         if (![request.URL.absoluteString hasSuffix:[AZSCXmlBlockList lowercaseString]])
         {
-            XCTAssert([[request allHTTPHeaderFields][AZSCXmlContentMd5] compare:actualContentMD5 options:NSLiteralSearch] == NSOrderedSame, @"Incorrect content-MD5 calculated by the library.");
+            XCTAssert([[request allHTTPHeaderFields][AZSCContentMd5] compare:actualContentMD5 options:NSLiteralSearch] == NSOrderedSame, @"Incorrect content-MD5 calculated by the library.");
         }
     };
     

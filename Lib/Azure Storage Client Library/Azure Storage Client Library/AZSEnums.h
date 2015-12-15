@@ -356,3 +356,11 @@ typedef NS_OPTIONS(NSUInteger, AZSSharedAccessResourceTypes)
     AZSSharedAccessResourceTypesAll         =
             AZSSharedAccessResourceTypesService | AZSSharedAccessResourceTypesContainer | AZSSharedAccessResourceTypesObject
 };
+
+typedef NS_ENUM(NSInteger, AZSSequenceNumberOperator)
+{
+    AZSSequenceNumberOperatorNone,
+    AZSSequenceNumberOperatorLessThanOrEqualTo,
+    AZSSequenceNumberOperatorLessThan,
+    AZSSequenceNumberOperatorEqualTo
+};

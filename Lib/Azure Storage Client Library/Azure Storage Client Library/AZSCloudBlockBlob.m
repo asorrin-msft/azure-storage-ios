@@ -31,6 +31,7 @@
 #import "AZSUtil.h"
 #import "AZSErrors.h"
 #import "AZSStorageUri.h"
+#import "AZSBlobProperties.h"
 
 
 @interface AZSBlobUploadFromStreamInputContainer : NSObject
@@ -275,7 +276,7 @@
 
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
      {
-         return [AZSBlobRequestFactory putBlockWithLength:[sourceData length] blockID:blockID contentMD5:contentMD5 AccessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+         return [AZSBlobRequestFactory putBlockWithLength:[sourceData length] blockID:blockID contentMD5:contentMD5 accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
      }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
