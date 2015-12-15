@@ -36,6 +36,7 @@
 - (instancetype)initWithStorageUri:(AZSStorageUri *)storageUri credentials:(AZSStorageCredentials *)credentials
 {
     self = [super initWithStorageUri:storageUri credentials:credentials];
+    self.directoryDelimiter = @"/";
     return self;
 }
 

@@ -35,6 +35,7 @@ AZS_ASSUME_NONNULL_BEGIN
 @class AZSSharedAccessHeaders;
 @class AZSSharedAccessPolicy;
 @class AZSStorageCredentials;
+@class AZSCloudBlobDirectory;
 
 // TODO: Figure out if we should combine all these into one generic 'Null response completion handler' or something.
 // TODO: Figure out how to get this typedef to work with Appledocs.
@@ -187,7 +188,6 @@ AZS_ASSUME_NONNULL_BEGIN
  */
 - (void)createContainerIfNotExistsWithCompletionHandler:(void (^)(NSError* __AZSNullable, BOOL))completionHandler;
 
-
 /** Creates the container on the service.  Will return success if the container already exists.
  
  @param accessType The access type that the container should have.
@@ -233,12 +233,10 @@ AZS_ASSUME_NONNULL_BEGIN
  Any number of blobs can be listed, from zero up to a set maximum.  Even if this method returns zero results, if
  the AZSContinuationToken in the result is not nil, there may be more containers on the service that have not been listed.
  
- Non-flat listing is currently not supported; this is coming soon.
- 
  @param token The token representing where the listing operation should start.
- @param prefix The prefix to use for container listing.  Only containers that begin with the input prefix
+ @param prefix The prefix to use for blob listing.  Only blobs that begin with the input prefix
  will be listed.
- @param useFlatBlobListing YES if the blob list should be flat (only blobs).
+ @param useFlatBlobListing YES if the blob list should be flat (only blobs).  NO if it should include directories.
  @param blobListingDetails Details about how to list blobs.  See AZSBlobListingDetails for the possible options.
  @param maxResults The maximum number of results to return for this operation.  Use -1 to not set a limit.
  @param completionHandler The block of code to execute with the results of the listing operation.
@@ -259,12 +257,10 @@ AZS_ASSUME_NONNULL_BEGIN
  Any number of blobs can be listed, from zero up to a set maximum.  Even if this method returns zero results, if
  the AZSContinuationToken in the result is not nil, there may be more containers on the service that have not been listed.
  
- Non-flat listing is currently not supported; this is coming soon.
- 
  @param token The token representing where the listing operation should start.
- @param prefix The prefix to use for container listing.  Only containers that begin with the input prefix
+ @param prefix The prefix to use for blob listing.  Only blobs that begin with the input prefix
  will be listed.
- @param useFlatBlobListing YES if the blob list should be flat (only blobs).
+ @param useFlatBlobListing YES if the blob list should be flat (only blobs).  NO if it should include directories.
  @param blobListingDetails Details about how to list blobs.  See AZSBlobListingDetails for the possible options.
  @param maxResults The maximum number of results to return for this operation.  Use -1 to not set a limit.
  @param accessCondition The access condition for the request.
@@ -292,6 +288,28 @@ AZS_ASSUME_NONNULL_BEGIN
  @return The new block blob object.
  */
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName;
+
+/** Initialize a local AZSCloudBlockBlob object
+ 
+ This creates an AZSCloudBlockBlob object with the input name.
+ 
+ TODO: Consider renaming this 'blockBlobFromName'.  This is better Objective-C style, but may confuse users into
+ thinking that this method creates a blob on the service, which is does not.
+ 
+ @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
+ for this blob, this will not be reflected in the local container object.
+ @param blobName The name of the block blob (part of the URL)
+ @param snapshotTime The snapshot time for the blob.  Null means the root blob (not a snapshot).
+ @return The new block blob object.
+ */
+- (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName snapshotTime:(NSString *)snapshotTime;
+
+/** Initialize a local AZSCloudBlobDirectory object
+ 
+ @param directoryName The name of the directory
+ @return The new directory object.
+ */
+- (AZSCloudBlobDirectory *)directoryReferenceFromName:(NSString *)directoryName;
 
 /** Sets the container's user defined metadata.
  

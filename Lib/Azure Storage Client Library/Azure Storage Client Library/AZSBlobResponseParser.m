@@ -54,6 +54,7 @@
         _properties = [[AZSBlobProperties alloc] init];
         _metadata = [NSMutableDictionary dictionaryWithCapacity:3];
         _blobCopyState = [[AZSCopyState alloc] init];
+        _isDirectory = NO;
     }
     return self;
 }
@@ -263,12 +264,14 @@
         {
             if ([currentNode isEqualToString:AZSCXmlBlob])
             {
+                currentBlobItem.isDirectory = NO;
                 [blobListItems addObject:currentBlobItem];
                 currentBlobItem = [[AZSBlobListItem alloc] init];
             }
             else if ([currentNode isEqualToString:AZSCXmlBlobPrefix])
             {
-                // TODO: implement once we have blob directory support
+                currentBlobItem.isDirectory = YES;
+                [blobListItems addObject:currentBlobItem];
                 currentBlobItem = [[AZSBlobListItem alloc] init];
             }
         }
@@ -281,6 +284,15 @@
             else if ([currentNode isEqualToString:AZSCXmlSnapshot])
             {
                 currentBlobItem.snapshotTime = builder;
+            }
+            
+            builder = [[NSMutableString alloc] init];
+        }
+        else if ([parentNode isEqualToString:@"BlobPrefix"])
+        {
+            if ([currentNode isEqualToString:@"Name"])
+            {
+                currentBlobItem.name = builder;
             }
             
             builder = [[NSMutableString alloc] init];
