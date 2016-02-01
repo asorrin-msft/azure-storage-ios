@@ -24,6 +24,8 @@ AZS_ASSUME_NONNULL_BEGIN
 @class AZSAccessCondition;
 @class AZSBlobRequestOptions;
 @class AZSOperationContext;
+@class AZSCloudAppendBlob;
+@class AZSCloudPageBlob;
 
 /** An AZSBlobOutputStream is used to write data to a blob on the service.
  
@@ -76,6 +78,8 @@ AZS_ASSUME_NONNULL_BEGIN
 
 // Specific blob methods:
 -(instancetype)initToBlockBlob:(AZSCloudBlockBlob *)blockBlob accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext AZS_DESIGNATED_INITIALIZER;
+-(instancetype)initToPageBlob:(AZSCloudPageBlob *)pageBlob totalBlobSize:(AZSNullable NSNumber *)totalBlobSize initialSequenceNumber:(AZSNullable NSNumber *)initialSequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext AZS_DESIGNATED_INITIALIZER;
+-(instancetype)initToAppendBlob:(AZSCloudAppendBlob *)appendBlob createNew:(BOOL)createNew accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext AZS_DESIGNATED_INITIALIZER;
 
 @end
 
