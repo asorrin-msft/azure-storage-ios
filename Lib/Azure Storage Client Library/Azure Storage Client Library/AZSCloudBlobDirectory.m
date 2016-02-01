@@ -21,13 +21,29 @@
 #import "AZSStorageUri.h"
 #import "AZSCloudBlockBlob.h"
 
+@interface AZSCloudBlobDirectory()
+
+-(instancetype)init AZS_DESIGNATED_INITIALIZER;
+
+@end
+
 @implementation AZSCloudBlobDirectory
+
+- (instancetype)init
+{
+    return nil;
+}
 
 - (instancetype)initWithDirectoryName:(NSString *)directoryName container:(AZSCloudBlobContainer *)container
 {
     self = [super init];
     if (self)
     {
+        if (!directoryName)
+        {
+            directoryName = AZSCEmptyString;
+        }
+        
         NSRange lastDelimiterRange = [directoryName rangeOfString:container.client.directoryDelimiter options:NSBackwardsSearch];
         
         if ((directoryName.length == 0) || (lastDelimiterRange.location + lastDelimiterRange.length == directoryName.length))
@@ -63,8 +79,7 @@
 
 - (AZSCloudBlobDirectory *)subdirectoryReferenceFromName:(NSString *)subdirectoryName
 {
-    AZSCloudBlobDirectory *subDirectory = [[AZSCloudBlobDirectory alloc] initWithDirectoryName:[self.name stringByAppendingString:subdirectoryName] container:self.blobContainer];
-    return subDirectory;
+    return [self.blobContainer directoryReferenceFromName:[self.name stringByAppendingString:subdirectoryName]];
 }
 
 - (AZSCloudBlobDirectory *)parentReference
@@ -72,7 +87,7 @@
     NSRange lastRange = [self.name rangeOfString:self.blobContainer.client.directoryDelimiter options:NSBackwardsSearch];
     if (lastRange.location == NSNotFound)
     {
-        return [[AZSCloudBlobDirectory alloc] initWithDirectoryName:AZSCEmptyString container:self.blobContainer];
+        return [self.blobContainer directoryReferenceFromName:AZSCEmptyString];
     }
     else
     {
@@ -81,11 +96,11 @@
         
         if (secondRange.location == NSNotFound)
         {
-            return [[AZSCloudBlobDirectory alloc] initWithDirectoryName:AZSCEmptyString container:self.blobContainer];
+            return [self.blobContainer directoryReferenceFromName:AZSCEmptyString];
         }
         else
         {
-            return [[AZSCloudBlobDirectory alloc] initWithDirectoryName:[parentDirectoryNameCandidate substringToIndex:secondRange.location] container:self.blobContainer];
+            return [self.blobContainer directoryReferenceFromName:[parentDirectoryNameCandidate substringToIndex:secondRange.location]];
         }
     }
 }
@@ -99,6 +114,5 @@
 {
     [self listBlobsSegmentedWithContinuationToken:token useFlatBlobListing:useFlatBlobListing blobListingDetails:blobListingDetails maxResults:maxResults accessCondition:nil requestOptions:nil operationContext:nil completionHandler:completionHandler];
 }
-
 
 @end

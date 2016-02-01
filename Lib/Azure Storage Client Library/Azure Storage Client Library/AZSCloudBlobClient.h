@@ -49,7 +49,9 @@ AZS_ASSUME_NONNULL_BEGIN
  created from this AZSCloudBlobClient object.*/
 @property (strong, AZSNullable) AZSBlobRequestOptions *defaultRequestOptions;
 
-@property (strong, AZSNullable) NSString *directoryDelimiter;
+/** The delimiter to use to separate out blob directories.
+ */
+@property (strong) NSString *directoryDelimiter;
 
 - (instancetype)initWithStorageUri:(AZSStorageUri *) storageUri credentials:(AZSStorageCredentials *) credentials AZS_DESIGNATED_INITIALIZER;
 

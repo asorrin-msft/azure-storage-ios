@@ -231,12 +231,12 @@ AZS_ASSUME_NONNULL_BEGIN
  blobs from the beginning.  Only blobs that begin with the input prefix will be listed.
  
  Any number of blobs can be listed, from zero up to a set maximum.  Even if this method returns zero results, if
- the AZSContinuationToken in the result is not nil, there may be more containers on the service that have not been listed.
+ the AZSContinuationToken in the result is not nil, there may be more blobs on the service that have not been listed.
  
  @param token The token representing where the listing operation should start.
  @param prefix The prefix to use for blob listing.  Only blobs that begin with the input prefix
  will be listed.
- @param useFlatBlobListing YES if the blob list should be flat (only blobs).  NO if it should include directories.
+ @param useFlatBlobListing YES if the blob list should be flat (list all blobs as if their names were only strings, no directories).  NO if it should list with directories.
  @param blobListingDetails Details about how to list blobs.  See AZSBlobListingDetails for the possible options.
  @param maxResults The maximum number of results to return for this operation.  Use -1 to not set a limit.
  @param completionHandler The block of code to execute with the results of the listing operation.
@@ -255,12 +255,12 @@ AZS_ASSUME_NONNULL_BEGIN
  blobs from the beginning.  Only blobs that begin with the input prefix will be listed.
  
  Any number of blobs can be listed, from zero up to a set maximum.  Even if this method returns zero results, if
- the AZSContinuationToken in the result is not nil, there may be more containers on the service that have not been listed.
+ the AZSContinuationToken in the result is not nil, there may be more blobs on the service that have not been listed.
  
  @param token The token representing where the listing operation should start.
  @param prefix The prefix to use for blob listing.  Only blobs that begin with the input prefix
  will be listed.
- @param useFlatBlobListing YES if the blob list should be flat (only blobs).  NO if it should include directories.
+ @param useFlatBlobListing YES if the blob list should be flat (list all blobs as if their names were only strings, no directories).  NO if it should list with directories.
  @param blobListingDetails Details about how to list blobs.  See AZSBlobListingDetails for the possible options.
  @param maxResults The maximum number of results to return for this operation.  Use -1 to not set a limit.
  @param accessCondition The access condition for the request.
@@ -285,7 +285,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
- @return The new block blob object.
+ @return The block blob object.
  */
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName;
 
@@ -299,8 +299,8 @@ AZS_ASSUME_NONNULL_BEGIN
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
- @param snapshotTime The snapshot time for the blob.  Null means the root blob (not a snapshot).
- @return The new block blob object.
+ @param snapshotTime The snapshot time for the blob.  Nil means the root blob (not a snapshot).
+ @return The block blob object.
  */
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName snapshotTime:(NSString *)snapshotTime;
 

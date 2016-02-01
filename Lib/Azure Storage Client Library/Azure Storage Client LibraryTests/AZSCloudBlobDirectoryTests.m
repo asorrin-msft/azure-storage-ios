@@ -27,6 +27,7 @@
 #import "AZSTestSemaphore.h"
 
 @interface AZSCloudBlobDirectoryTests : AZSBlobTestBase
+
 @property NSString *containerName;
 @property AZSCloudBlobContainer *blobContainer;
 
@@ -57,10 +58,7 @@
     AZSTestSemaphore *semaphore = [[AZSTestSemaphore alloc] init];
     
     @try {
-        // Best-effort cleanup
-        // TODO: Change to delete if exists once that's implemented.
-        
-        [blobContainer deleteContainerWithCompletionHandler:^(NSError * error) {
+        [blobContainer deleteContainerIfExistsWithCompletionHandler:^(NSError * error, BOOL deleted) {
             [semaphore signal];
         }];
     }
@@ -77,95 +75,95 @@
     XCTAssertEqualObjects(@"dirName/", directory.name, @"Directory names do not match.");
     XCTAssertEqual(self.blobContainer, directory.blobContainer, @"Containers do not match.");
     XCTAssertEqual(self.blobClient, directory.client, @"Blob clients do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter, self.blobContainer.storageUri.primaryUri.absoluteString, @"dirName", nil]), directory.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString, @"dirName"]]), directory.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
     
     directory = [[AZSCloudBlobDirectory alloc] initWithDirectoryName:@"/" container:self.blobContainer];
     XCTAssertEqualObjects(@"/", directory.name, @"Directory names do not match.");
     XCTAssertEqual(self.blobContainer, directory.blobContainer, @"Containers do not match.");
     XCTAssertEqual(self.blobClient, directory.client, @"Blob clients do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter, self.blobContainer.storageUri.primaryUri.absoluteString, @"/", nil]), directory.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString, @"/"]]), directory.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
     
-    directory = [[AZSCloudBlobDirectory alloc] initWithDirectoryName:@"" container:self.blobContainer];
+    directory = [[AZSCloudBlobDirectory alloc] initWithDirectoryName:AZSCEmptyString container:self.blobContainer];
     XCTAssertEqualObjects(@"", directory.name, @"Directory names do not match.");
     XCTAssertEqual(self.blobContainer, directory.blobContainer, @"Containers do not match.");
     XCTAssertEqual(self.blobClient, directory.client, @"Blob clients do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter, self.blobContainer.storageUri.primaryUri.absoluteString, nil]), directory.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString]]), directory.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
 }
 
 - (void)testBlobDirectoryNavigation
 {
-    AZSCloudBlobDirectory *directorya = [self.blobContainer directoryReferenceFromName:@"a"];
-    AZSCloudBlobDirectory *directoryb = [self.blobContainer directoryReferenceFromName:@"b"];
-    AZSCloudBlobDirectory *directoryac = [directorya subdirectoryReferenceFromName:@"c"];
-    AZSCloudBlobDirectory *directoryacd = [directoryac subdirectoryReferenceFromName:@"d"];
+    AZSCloudBlobDirectory *directoryA = [self.blobContainer directoryReferenceFromName:@"a"];
+    AZSCloudBlobDirectory *directoryB = [self.blobContainer directoryReferenceFromName:@"b"];
+    AZSCloudBlobDirectory *directoryAC = [directoryA subdirectoryReferenceFromName:@"c"];
+    AZSCloudBlobDirectory *directoryACD = [directoryAC subdirectoryReferenceFromName:@"d"];
     
-    XCTAssertEqualObjects(@"a/", directorya.name, @"Directory names do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter, self.blobContainer.storageUri.primaryUri.absoluteString, @"a", nil]), directorya.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
-    XCTAssertEqualObjects(@"b/", directoryb.name, @"Directory names do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,self.blobContainer.storageUri.primaryUri.absoluteString,@"b", nil]), directoryb.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
-    XCTAssertEqualObjects(@"a/c/", directoryac.name, @"Directory names do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,self.blobContainer.storageUri.primaryUri.absoluteString,@"a",@"c", nil]), directoryac.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
-    XCTAssertEqualObjects(@"a/c/d/", directoryacd.name, @"Directory names do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,self.blobContainer.storageUri.primaryUri.absoluteString,@"a",@"c",@"d", nil]), directoryacd.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(@"a/", directoryA.name, @"Directory names do not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString, @"a"]]), directoryA.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(@"b/", directoryB.name, @"Directory names do not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString,@"b"]]), directoryB.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(@"a/c/", directoryAC.name, @"Directory names do not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString,@"a",@"c"]]), directoryAC.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(@"a/c/d/", directoryACD.name, @"Directory names do not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString,@"a",@"c",@"d"]]), directoryACD.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
     
-    AZSCloudBlobDirectory *directoryacdParent = [directoryacd parentReference];
-    AZSCloudBlobDirectory *directoryacdParentParent = [directoryacdParent parentReference];
+    AZSCloudBlobDirectory *directoryACDParent = [directoryACD parentReference];
+    AZSCloudBlobDirectory *directoryACDParentParent = [directoryACDParent parentReference];
     
-    XCTAssertEqualObjects(@"a/c/", directoryacdParent.name, @"Directory names do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,self.blobContainer.storageUri.primaryUri.absoluteString,@"a",@"c", nil]), directoryacdParent.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
-    XCTAssertEqualObjects(@"a/", directoryacdParentParent.name, @"Directory names do not match.");
-    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,self.blobContainer.storageUri.primaryUri.absoluteString,@"a", nil]), directoryacdParentParent.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(@"a/c/", directoryACDParent.name, @"Directory names do not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString,@"a",@"c"]]), directoryACDParent.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
+    XCTAssertEqualObjects(@"a/", directoryACDParentParent.name, @"Directory names do not match.");
+    XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[self.blobContainer.storageUri.primaryUri.absoluteString,@"a"]]), directoryACDParentParent.storageUri.primaryUri.absoluteString, @"StorageURI does not match.");
 
-    AZSCloudBlobDirectory *directoryaParent = [directorya parentReference];
-    AZSCloudBlobDirectory *directoryacdParentParentParent = [directoryacdParentParent parentReference];
-    XCTAssertEqualObjects(@"", directoryaParent.name, @"Nonexistent directory non empty.");
-    XCTAssertEqualObjects(@"", directoryacdParentParentParent.name, @"Nonexistent directory non empty.");
+    AZSCloudBlobDirectory *directoryAParent = [directoryA parentReference];
+    AZSCloudBlobDirectory *directoryACDParentParentParent = [directoryACDParentParent parentReference];
+    XCTAssertEqualObjects(@"", directoryAParent.name, @"Nonexistent directory non empty.");
+    XCTAssertEqualObjects(@"", directoryACDParentParentParent.name, @"Nonexistent directory non empty.");
 
-    XCTAssertEqual(self.blobContainer, directorya.blobContainer, @"Incorrect blob container returned.");
-    XCTAssertEqual(self.blobContainer, directoryb.blobContainer, @"Incorrect blob container returned.");
-    XCTAssertEqual(self.blobContainer, directoryac.blobContainer, @"Incorrect blob container returned.");
-    XCTAssertEqual(self.blobContainer, directoryacd.blobContainer, @"Incorrect blob container returned.");
-    XCTAssertEqual(self.blobContainer, directoryacdParent.blobContainer, @"Incorrect blob container returned.");
-    XCTAssertEqual(self.blobContainer, directoryacdParentParent.blobContainer, @"Incorrect blob container returned.");
+    XCTAssertEqual(self.blobContainer, directoryA.blobContainer, @"Incorrect blob container returned.");
+    XCTAssertEqual(self.blobContainer, directoryB.blobContainer, @"Incorrect blob container returned.");
+    XCTAssertEqual(self.blobContainer, directoryAC.blobContainer, @"Incorrect blob container returned.");
+    XCTAssertEqual(self.blobContainer, directoryACD.blobContainer, @"Incorrect blob container returned.");
+    XCTAssertEqual(self.blobContainer, directoryACDParent.blobContainer, @"Incorrect blob container returned.");
+    XCTAssertEqual(self.blobContainer, directoryACDParentParent.blobContainer, @"Incorrect blob container returned.");
 }
 
 - (void)testFlatListingInDirectory
 {
     AZSTestSemaphore *semaphore = [[AZSTestSemaphore alloc] init];
 
-    AZSCloudBlobDirectory *directorya = [self.blobContainer directoryReferenceFromName:@"a"];
-    AZSCloudBlobDirectory *directoryb = [self.blobContainer directoryReferenceFromName:@"b"];
-    AZSCloudBlobDirectory *directoryac = [directorya subdirectoryReferenceFromName:@"c"];
-    AZSCloudBlobDirectory *directoryacd = [directoryac subdirectoryReferenceFromName:@"d"];
+    AZSCloudBlobDirectory *directoryA = [self.blobContainer directoryReferenceFromName:@"a"];
+    AZSCloudBlobDirectory *directoryB = [self.blobContainer directoryReferenceFromName:@"b"];
+    AZSCloudBlobDirectory *directoryAC = [directoryA subdirectoryReferenceFromName:@"c"];
+    AZSCloudBlobDirectory *directoryACD = [directoryAC subdirectoryReferenceFromName:@"d"];
     
-    NSString *blobaShortName = @"bloba";
-    NSString *blobbShortName = @"blobb";
-    NSString *blobacShortName = @"blobac";
-    NSString *blobacdShortName = @"blobacd";
+    NSString *blobAShortName = @"bloba";
+    NSString *blobBShortName = @"blobb";
+    NSString *blobACShortName = @"blobac";
+    NSString *blobACDShortName = @"blobacd";
     
-    AZSCloudBlockBlob *bloba = [directorya blockBlobReferenceFromName:blobaShortName];
-    AZSCloudBlockBlob *blobb = [directoryb blockBlobReferenceFromName:blobbShortName];
-    AZSCloudBlockBlob *blobac = [directoryac blockBlobReferenceFromName:blobacShortName];
-    AZSCloudBlockBlob *blobacd = [directoryacd blockBlobReferenceFromName:blobacdShortName];
+    AZSCloudBlockBlob *blobA = [directoryA blockBlobReferenceFromName:blobAShortName];
+    AZSCloudBlockBlob *blobB = [directoryB blockBlobReferenceFromName:blobBShortName];
+    AZSCloudBlockBlob *blobAC = [directoryAC blockBlobReferenceFromName:blobACShortName];
+    AZSCloudBlockBlob *blobACD = [directoryACD blockBlobReferenceFromName:blobACDShortName];
     
-    [bloba uploadFromText:@"blobatext" completionHandler:^(NSError *error) {
+    [blobA uploadFromText:@"blobatext" completionHandler:^(NSError *error) {
         XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-        [blobb uploadFromText:@"blobbtext:" completionHandler:^(NSError *error) {
+        [blobB uploadFromText:@"blobbtext:" completionHandler:^(NSError *error) {
             XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-            [blobac uploadFromText:@"blobactext:" completionHandler:^(NSError *error) {
+            [blobAC uploadFromText:@"blobactext:" completionHandler:^(NSError *error) {
                 XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-                [blobacd uploadFromText:@"blobacdtext:" completionHandler:^(NSError *error) {
+                [blobACD uploadFromText:@"blobacdtext:" completionHandler:^(NSError *error) {
                     XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                     
                     NSMutableArray *blobArray = [NSMutableArray arrayWithCapacity:3];
                     NSMutableArray *directoryArray = [NSMutableArray arrayWithCapacity:0];
-                    [self listAllInDirectoryOrContainer:directorya useFlatBlobListing:YES blobArrayToPopulate:blobArray directoryArrayToPopulate:directoryArray continuationToken:nil prefix:nil blobListingDetails:AZSBlobListingDetailsNone maxResults:5000 completionHandler:^(NSError *error) {
+                    [self listAllInDirectoryOrContainer:directoryA useFlatBlobListing:YES blobArrayToPopulate:blobArray directoryArrayToPopulate:directoryArray continuationToken:nil prefix:nil blobListingDetails:AZSBlobListingDetailsNone maxResults:5000 completionHandler:^(NSError *error) {
                         XCTAssertNil(error, @"Error in listing blobs.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                         XCTAssertEqual(3, blobArray.count, @"Incorrect number of blobs listed.");
                         XCTAssertEqual(0, directoryArray.count, @"Incorrect number of directories listed.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter,@"a",blobaShortName, nil]), ((AZSCloudBlob *)blobArray[0]).blobName, @"Blob names do not match.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter,@"a",@"c",blobacShortName, nil]), ((AZSCloudBlob *)blobArray[1]).blobName, @"Blob names do not match.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter,@"a",@"c",@"d",blobacdShortName, nil]), ((AZSCloudBlob *)blobArray[2]).blobName, @"Blob names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter strings:@[@"a",blobAShortName]]), ((AZSCloudBlob *)blobArray[0]).blobName, @"Blob names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter strings:@[@"a",@"c",blobACShortName]]), ((AZSCloudBlob *)blobArray[1]).blobName, @"Blob names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter strings:@[@"a",@"c",@"d",blobACDShortName]]), ((AZSCloudBlob *)blobArray[2]).blobName, @"Blob names do not match.");
                         
                         [semaphore signal];
                     }];
@@ -181,38 +179,38 @@
 {
     AZSTestSemaphore *semaphore = [[AZSTestSemaphore alloc] init];
     
-    AZSCloudBlobDirectory *directorya = [self.blobContainer directoryReferenceFromName:@"a"];
-    AZSCloudBlobDirectory *directoryb = [self.blobContainer directoryReferenceFromName:@"b"];
-    AZSCloudBlobDirectory *directoryac = [directorya subdirectoryReferenceFromName:@"c"];
-    AZSCloudBlobDirectory *directoryacd = [directoryac subdirectoryReferenceFromName:@"d"];
+    AZSCloudBlobDirectory *directoryA = [self.blobContainer directoryReferenceFromName:@"a"];
+    AZSCloudBlobDirectory *directoryB = [self.blobContainer directoryReferenceFromName:@"b"];
+    AZSCloudBlobDirectory *directoryAC = [directoryA subdirectoryReferenceFromName:@"c"];
+    AZSCloudBlobDirectory *directoryACD = [directoryAC subdirectoryReferenceFromName:@"d"];
     
-    NSString *blobaShortName = @"bloba";
-    NSString *blobbShortName = @"blobb";
-    NSString *blobacShortName = @"blobac";
-    NSString *blobacdShortName = @"blobacd";
+    NSString *blobAShortName = @"bloba";
+    NSString *blobBShortName = @"blobb";
+    NSString *blobACShortName = @"blobac";
+    NSString *blobACDShortName = @"blobacd";
     
-    AZSCloudBlockBlob *bloba = [directorya blockBlobReferenceFromName:blobaShortName];
-    AZSCloudBlockBlob *blobb = [directoryb blockBlobReferenceFromName:blobbShortName];
-    AZSCloudBlockBlob *blobac = [directoryac blockBlobReferenceFromName:blobacShortName];
-    AZSCloudBlockBlob *blobacd = [directoryacd blockBlobReferenceFromName:blobacdShortName];
+    AZSCloudBlockBlob *blobA = [directoryA blockBlobReferenceFromName:blobAShortName];
+    AZSCloudBlockBlob *blobB = [directoryB blockBlobReferenceFromName:blobBShortName];
+    AZSCloudBlockBlob *blobAC = [directoryAC blockBlobReferenceFromName:blobACShortName];
+    AZSCloudBlockBlob *blobACD = [directoryACD blockBlobReferenceFromName:blobACDShortName];
     
-    [bloba uploadFromText:@"blobatext" completionHandler:^(NSError *error) {
+    [blobA uploadFromText:@"blobatext" completionHandler:^(NSError *error) {
         XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-        [blobb uploadFromText:@"blobbtext:" completionHandler:^(NSError *error) {
+        [blobB uploadFromText:@"blobbtext:" completionHandler:^(NSError *error) {
             XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-            [blobac uploadFromText:@"blobactext:" completionHandler:^(NSError *error) {
+            [blobAC uploadFromText:@"blobactext:" completionHandler:^(NSError *error) {
                 XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-                [blobacd uploadFromText:@"blobacdtext:" completionHandler:^(NSError *error) {
+                [blobACD uploadFromText:@"blobacdtext:" completionHandler:^(NSError *error) {
                     XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                     
                     NSMutableArray *blobArray = [NSMutableArray arrayWithCapacity:1];
                     NSMutableArray *directoryArray = [NSMutableArray arrayWithCapacity:1];
-                    [self listAllInDirectoryOrContainer:directorya useFlatBlobListing:NO blobArrayToPopulate:blobArray directoryArrayToPopulate:directoryArray continuationToken:nil prefix:nil blobListingDetails:AZSBlobListingDetailsNone maxResults:5000 completionHandler:^(NSError *error) {
+                    [self listAllInDirectoryOrContainer:directoryA useFlatBlobListing:NO blobArrayToPopulate:blobArray directoryArrayToPopulate:directoryArray continuationToken:nil prefix:nil blobListingDetails:AZSBlobListingDetailsNone maxResults:5000 completionHandler:^(NSError *error) {
                         XCTAssertNil(error, @"Error in listing blobs.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                         XCTAssertEqual(1, blobArray.count, @"Incorrect number of blobs listed.");
                         XCTAssertEqual(1, directoryArray.count, @"Incorrect number of directories listed.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter,@"a",blobaShortName, nil]), ((AZSCloudBlob *)blobArray[0]).blobName, @"Blob names do not match.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,@"a",@"c", nil]), ((AZSCloudBlobDirectory *)directoryArray[0]).name, @"Directory names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:self.blobClient.directoryDelimiter strings:@[@"a",blobAShortName]]), ((AZSCloudBlob *)blobArray[0]).blobName, @"Blob names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[@"a",@"c"]]), ((AZSCloudBlobDirectory *)directoryArray[0]).name, @"Directory names do not match.");
                         
                         [semaphore signal];
                     }];
@@ -228,28 +226,28 @@
 {
     AZSTestSemaphore *semaphore = [[AZSTestSemaphore alloc] init];
     
-    AZSCloudBlobDirectory *directorya = [self.blobContainer directoryReferenceFromName:@"a"];
-    AZSCloudBlobDirectory *directoryb = [self.blobContainer directoryReferenceFromName:@"b"];
-    AZSCloudBlobDirectory *directoryac = [directorya subdirectoryReferenceFromName:@"c"];
-    AZSCloudBlobDirectory *directoryacd = [directoryac subdirectoryReferenceFromName:@"d"];
+    AZSCloudBlobDirectory *directoryA = [self.blobContainer directoryReferenceFromName:@"a"];
+    AZSCloudBlobDirectory *directoryB = [self.blobContainer directoryReferenceFromName:@"b"];
+    AZSCloudBlobDirectory *directoryAC = [directoryA subdirectoryReferenceFromName:@"c"];
+    AZSCloudBlobDirectory *directoryACD = [directoryAC subdirectoryReferenceFromName:@"d"];
     
     NSString *blobaShortName = @"bloba";
     NSString *blobbShortName = @"blobb";
     NSString *blobacShortName = @"blobac";
     NSString *blobacdShortName = @"blobacd";
     
-    AZSCloudBlockBlob *bloba = [directorya blockBlobReferenceFromName:blobaShortName];
-    AZSCloudBlockBlob *blobb = [directoryb blockBlobReferenceFromName:blobbShortName];
-    AZSCloudBlockBlob *blobac = [directoryac blockBlobReferenceFromName:blobacShortName];
-    AZSCloudBlockBlob *blobacd = [directoryacd blockBlobReferenceFromName:blobacdShortName];
+    AZSCloudBlockBlob *blobA = [directoryA blockBlobReferenceFromName:blobaShortName];
+    AZSCloudBlockBlob *blobB = [directoryB blockBlobReferenceFromName:blobbShortName];
+    AZSCloudBlockBlob *blobAC = [directoryAC blockBlobReferenceFromName:blobacShortName];
+    AZSCloudBlockBlob *blobACD = [directoryACD blockBlobReferenceFromName:blobacdShortName];
     
-    [bloba uploadFromText:@"blobatext" completionHandler:^(NSError *error) {
+    [blobA uploadFromText:@"blobatext" completionHandler:^(NSError *error) {
         XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-        [blobb uploadFromText:@"blobbtext:" completionHandler:^(NSError *error) {
+        [blobB uploadFromText:@"blobbtext:" completionHandler:^(NSError *error) {
             XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-            [blobac uploadFromText:@"blobactext:" completionHandler:^(NSError *error) {
+            [blobAC uploadFromText:@"blobactext:" completionHandler:^(NSError *error) {
                 XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
-                [blobacd uploadFromText:@"blobacdtext:" completionHandler:^(NSError *error) {
+                [blobACD uploadFromText:@"blobacdtext:" completionHandler:^(NSError *error) {
                     XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                     
                     NSMutableArray *blobArray = [NSMutableArray arrayWithCapacity:0];
@@ -258,8 +256,8 @@
                         XCTAssertNil(error, @"Error in listing blobs.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                         XCTAssertEqual(0, blobArray.count, @"Incorrect number of blobs listed.");
                         XCTAssertEqual(2, directoryArray.count, @"Incorrect number of directories listed.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,@"a", nil]), ((AZSCloudBlobDirectory *)directoryArray[0]).name, @"Directory names do not match.");
-                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter,@"b", nil]), ((AZSCloudBlobDirectory *)directoryArray[1]).name, @"Directory names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[@"a"]]), ((AZSCloudBlobDirectory *)directoryArray[0]).name, @"Directory names do not match.");
+                        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:self.blobClient.directoryDelimiter strings:@[@"b"]]), ((AZSCloudBlobDirectory *)directoryArray[1]).name, @"Directory names do not match.");
                         
                         [semaphore signal];
                     }];
@@ -282,8 +280,8 @@
     [bloba uploadFromText:blobText completionHandler:^(NSError *error) {
         XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
             
-        AZSCloudBlockBlob *newBloba = [self.blobContainer blockBlobReferenceFromName:[directory.name stringByAppendingString:blobaShortName]];
-        [newBloba downloadToTextWithCompletionHandler:^(NSError *error, NSString *newBlobText) {
+        AZSCloudBlockBlob *newBlobA = [self.blobContainer blockBlobReferenceFromName:[directory.name stringByAppendingString:blobaShortName]];
+        [newBlobA downloadToTextWithCompletionHandler:^(NSError *error, NSString *newBlobText) {
             XCTAssertNil(error, @"Error in downloading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
             XCTAssertEqualObjects(blobText, newBlobText, @"Blob text does not match.");
                 
@@ -292,8 +290,8 @@
             [blobb uploadFromText:blobText completionHandler:^(NSError *error) {
                 XCTAssertNil(error, @"Error in uploading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                     
-                AZSCloudBlockBlob *newBlobb = [directory blockBlobReferenceFromName:blobbShortName];
-                [newBlobb downloadToTextWithCompletionHandler:^(NSError *error, NSString *newBlobText) {
+                AZSCloudBlockBlob *newBlobB = [directory blockBlobReferenceFromName:blobbShortName];
+                [newBlobB downloadToTextWithCompletionHandler:^(NSError *error, NSString *newBlobText) {
                     XCTAssertNil(error, @"Error in downloading blob.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                     XCTAssertEqualObjects(blobText, newBlobText, @"Blob text does not match.");
                         
@@ -308,63 +306,65 @@
 
 - (void)testDifferentDelimiters
 {
+    NSArray *delimiters = @[@"xyz", @"$", @"@", @"-", @"%", @"/", @"|", @"xyz@$-%/|?", @"", [NSNull null]];
     
-    NSArray *delimiters = [NSArray arrayWithObjects:@"xyz", @"$", @"@", @"-", @"%", @"/", @"|", @"xyz@$-%/|?", nil];
-    
-    for (NSString *delimiter in delimiters)
+    for (__strong NSString *delimiter in delimiters)
     {
+        if (delimiter == (NSString *)[NSNull null])
+        {
+            delimiter = nil;
+        }
+        
         AZSCloudBlobClient *newClient = [[AZSCloudBlobClient alloc] initWithStorageUri:self.blobClient.storageUri credentials:self.blobClient.credentials];
         newClient.directoryDelimiter = delimiter;
         
         AZSCloudBlobContainer *container = [newClient containerReferenceFromName:self.containerName];
-        AZSCloudBlobDirectory *directorya = [container directoryReferenceFromName:@"a"];
-        AZSCloudBlobDirectory *directoryadelimInName = [container directoryReferenceFromName:[@"a" stringByAppendingString:delimiter]];
-        AZSCloudBlobDirectory *directoryab = [directorya subdirectoryReferenceFromName:@"b"];
-        AZSCloudBlobDirectory *directoryabc = [directoryab subdirectoryReferenceFromName:@"c"];
-        AZSCloudBlobDirectory *directoryabcParent = [directoryabc parentReference];
-        AZSCloudBlobDirectory *directoryabcParentParent = [directoryabcParent parentReference];
-        AZSCloudBlockBlob *blobabc = [directoryabc blockBlobReferenceFromName:@"blobabc"];
+        AZSCloudBlobDirectory *directoryA = [container directoryReferenceFromName:@"a"];
+        AZSCloudBlobDirectory *directoryAdelimInName = [container directoryReferenceFromName:(delimiter ? [@"a" stringByAppendingString:delimiter] : @"a")];
+        AZSCloudBlobDirectory *directoryAB = [directoryA subdirectoryReferenceFromName:@"b"];
+        AZSCloudBlobDirectory *directoryABC = [directoryAB subdirectoryReferenceFromName:@"c"];
+        AZSCloudBlobDirectory *directoryABCParent = [directoryABC parentReference];
+        AZSCloudBlobDirectory *directoryABCParentParent = [directoryABCParent parentReference];
+        AZSCloudBlobDirectory *directoryDelimInName = [container directoryReferenceFromName:delimiter];
+        AZSCloudBlockBlob *blobABC = [directoryABC blockBlobReferenceFromName:@"blobabc"];
+        
+        NSString *actualDelimiter = delimiter;
+        if (!delimiter.length)
+        {
+            actualDelimiter = @"/";
+        }
     
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:delimiter,@"a",nil]), directorya.name, @"Directory names do not match.");
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:delimiter,@"a",nil]), directoryadelimInName.name, @"Directory names do not match.");
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:delimiter,@"a",@"b",nil]), directoryab.name, @"Directory names do not match.");
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:delimiter,@"a",@"b",@"c",nil]), directoryabc.name, @"Directory names do not match.");
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:delimiter,@"a",@"b",nil]), directoryabcParent.name, @"Directory names do not match.");
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:delimiter,@"a",nil]), directoryabcParentParent.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a"]]), directoryA.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a"]]), directoryAdelimInName.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a",@"b"]]), directoryAB.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a",@"b",@"c"]]), directoryABC.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a",@"b"]]), directoryABCParent.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a"]]), directoryABCParentParent.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:(delimiter.length ? YES : NO) withDelimiter:actualDelimiter strings:@[]]), directoryDelimInName.name, @"Directory names do not match.");
 
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:delimiter,@"a",@"b",@"c",@"blobabc",nil]), blobabc.blobName, @"Blob names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:NO withDelimiter:actualDelimiter strings:@[@"a",@"b",@"c",@"blobabc"]]), blobABC.blobName, @"Blob names do not match.");
     
-        [self runTestCreatingBlobsInDirectoryWithDirectory:directoryabc];
+        [self runTestCreatingBlobsInDirectoryWithDirectory:directoryABC];
     }
 }
 
--(NSString *)appendStringsAppendFinalDelimiter:(BOOL)appendFinal withDelimiter:(NSString *)delimiter,...
+-(NSString *)appendStringsAppendFinalDelimiter:(BOOL)appendFinal withDelimiter:(NSString *)delimiter strings:(NSArray *)strings
 {
-    va_list args;
-    va_start(args, delimiter);
     
-    NSMutableString *builder = [NSMutableString string];
-    NSString *firstArg = va_arg(args, NSString*);
-    if (firstArg == nil)
-    {
-        return @"";
-    }
-    
-    [builder appendString:firstArg];
-    
-    for (NSString *arg = va_arg(args, NSString*); arg != nil; arg = va_arg(args, NSString*))
-    {
-        [builder appendString:delimiter];
-        [builder appendString:arg];
-    }
-    
+    NSString *joinedString = [strings componentsJoinedByString:delimiter];
+    NSLog(@"joinedString = %@", joinedString);
     if (appendFinal)
     {
-        [builder appendString:delimiter];
+        if (joinedString)
+        {
+            joinedString = [joinedString stringByAppendingString:delimiter];
+        }
+        else
+        {
+            joinedString = delimiter;
+        }
     }
-    
-    va_end(args);
-    return builder;
+    return joinedString;
 }
 
 -(void)listAllInDirectoryOrContainer:(NSObject *)objectToList useFlatBlobListing:(BOOL)useFlatBlobListing blobArrayToPopulate:(NSMutableArray *)blobArrayToPopulate directoryArrayToPopulate:(NSMutableArray *)directoryArrayToPopulate continuationToken:(AZSContinuationToken *)continuationToken prefix:(NSString *)prefix blobListingDetails:(AZSBlobListingDetails)blobListingDetails maxResults:(NSUInteger)maxResults completionHandler:(void (^)(NSError *))completionHandler

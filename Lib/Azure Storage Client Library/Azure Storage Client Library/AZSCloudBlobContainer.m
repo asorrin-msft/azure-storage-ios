@@ -222,18 +222,16 @@
         {
             if (blobListItem.isDirectory)
             {
-                AZSCloudBlobDirectory *temp = [[AZSCloudBlobDirectory alloc] initWithDirectoryName:blobListItem.name container:self];
-                
-                [directoryResults addObject:temp];
+                [directoryResults addObject:[[AZSCloudBlobDirectory alloc] initWithDirectoryName:blobListItem.name container:self]];
             }
             else
             {
-                AZSCloudBlob *temp = [[AZSCloudBlob alloc] initWithContainer:self name:blobListItem.name snapshotTime:blobListItem.snapshotTime];
-                temp.metadata = blobListItem.metadata;
-                temp.properties = blobListItem.properties;
-                temp.blobCopyState = blobListItem.blobCopyState;
+                AZSCloudBlob *blob = [[AZSCloudBlob alloc] initWithContainer:self name:blobListItem.name snapshotTime:blobListItem.snapshotTime];
+                blob.metadata = blobListItem.metadata;
+                blob.properties = blobListItem.properties;
+                blob.blobCopyState = blobListItem.blobCopyState;
             
-                [blobResults addObject:temp];
+                [blobResults addObject:blob];
             }
         }
         
@@ -640,7 +638,7 @@
 
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName
 {
-    AZSCloudBlockBlob *blockBlob = [[AZSCloudBlockBlob alloc] initWithContainer:self name:blobName];
+    AZSCloudBlockBlob *blockBlob = [[AZSCloudBlockBlob alloc] initWithContainer:self name:blobName snapshotTime:nil];
     return blockBlob;
 }
 

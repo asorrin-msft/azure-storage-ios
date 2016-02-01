@@ -20,6 +20,8 @@
 #import "AZSEnums.h"
 #import "AZSConstants.h"
 
+AZS_ASSUME_NONNULL_BEGIN
+
 @class AZSCloudBlockBlob;
 @class AZSCloudBlobContainer;
 @class AZSStorageUri;
@@ -47,11 +49,17 @@
 /** Initializes a newly allocated AZSCloudBlockDirectory object
  
  @param directoryName The name of the directory.  This should be the full path to the directory, not 
- including the container name.
+ including the container name.  For example:
+ 
+ If the full URI to the directory is
+ https://myaccount.blob.core.windows.net/mycontainer/dir1/dir2/dir3
+ then this parameter should be:
+ dir1/dir2/dir3.
+ 
  @param container The AZSCloudBlobContainer in which the container exists.
  @return The newly allocated instance.
  */
-- (instancetype)initWithDirectoryName:(NSString *)directoryName container:(AZSCloudBlobContainer *)container;
+- (instancetype)initWithDirectoryName:(NSString *)directoryName container:(AZSCloudBlobContainer *)container AZS_DESIGNATED_INITIALIZER;
 
 /** Initialize a local AZSCloudBlockBlob object
  
@@ -63,7 +71,7 @@
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
- @return The new block blob object.
+ @return The block blob object.
  */
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName;
 
@@ -77,9 +85,9 @@
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
- @return The new block blob object.
+ @return The block blob object.
  */
-- (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName snapshotTime:(NSString *)snapshotTime;
+- (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName snapshotTime:(AZSNullable NSString *)snapshotTime;
 
 /** Initialize a AZSCloudBlobDiretory object that represents the 'parent' directory of the current object.
  
@@ -93,7 +101,7 @@
  
  The delimiter used is the one set in self.client.
  
- @return The newly allocated parent directory.
+ @return The newly allocated parent directory object.
  */
 - (AZSCloudBlobDirectory *)parentReference;
 
@@ -110,23 +118,21 @@
  The delimiter used is the one set in self.client.
  
  @param subdirectoryName The name of the subdirectory.
- @return The newly allocated subdirectory.
+ @return The newly allocated subdirectory object.
  */
 - (AZSCloudBlobDirectory *)subdirectoryReferenceFromName:(NSString *)subdirectoryName;
 
 /** Performs one segmented blob listing operation.
  
- This method lists the blobs in the given container.  It will perform exactly one REST call, which will list blobs
- beginning with the container represented in the AZSContinuationToken.  If no token is provided, it will list
+ This method lists the blobs in the given directory.  It will perform exactly one REST call, which will list blobs
+ beginning with the directory represented in the AZSContinuationToken.  If no token is provided, it will list
  blobs from the beginning.  Only blobs that begin with the input prefix will be listed.
  
  Any number of blobs can be listed, from zero up to a set maximum.  Even if this method returns zero results, if
- the AZSContinuationToken in the result is not nil, there may be more containers on the service that have not been listed.
- 
- Non-flat listing is currently not supported; this is coming soon.
+ the AZSContinuationToken in the result is not nil, there may be more blobs on the service that have not been listed.
  
  @param token The token representing where the listing operation should start.
- @param useFlatBlobListing YES if the blob list should be flat (only blobs).
+ @param useFlatBlobListing YES if the blob list should be flat (list all blobs as if their names were only strings, no directories).  NO if it should list with directories.
  @param blobListingDetails Details about how to list blobs.  See AZSBlobListingDetails for the possible options.
  @param maxResults The maximum number of results to return for this operation.  Use -1 to not set a limit.
  @param completionHandler The block of code to execute with the results of the listing operation.
@@ -140,17 +146,15 @@
 
 /** Performs one segmented blob listing operation.
  
- This method lists the blobs in the given container.  It will perform exactly one REST call, which will list blobs
- beginning with the container represented in the AZSContinuationToken.  If no token is provided, it will list
+ This method lists the blobs in the given directory.  It will perform exactly one REST call, which will list blobs
+ beginning with the directory represented in the AZSContinuationToken.  If no token is provided, it will list
  blobs from the beginning.  Only blobs that begin with the input prefix will be listed.
  
  Any number of blobs can be listed, from zero up to a set maximum.  Even if this method returns zero results, if
- the AZSContinuationToken in the result is not nil, there may be more containers on the service that have not been listed.
- 
- Non-flat listing is currently not supported; this is coming soon.
+ the AZSContinuationToken in the result is not nil, there may be more blobs on the service that have not been listed.
  
  @param token The token representing where the listing operation should start.
- @param useFlatBlobListing YES if the blob list should be flat (only blobs).
+ @param useFlatBlobListing YES if the blob list should be flat (list all blobs as if their names were only strings, no directories).  NO if it should list with directories.
  @param blobListingDetails Details about how to list blobs.  See AZSBlobListingDetails for the possible options.
  @param maxResults The maximum number of results to return for this operation.  Use -1 to not set a limit.
  @param accessCondition The access condition for the request.
@@ -166,3 +170,5 @@
 - (void)listBlobsSegmentedWithContinuationToken:(AZSNullable AZSContinuationToken *)token useFlatBlobListing:(BOOL)useFlatBlobListing blobListingDetails:(AZSBlobListingDetails)blobListingDetails maxResults:(NSInteger)maxResults accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable, AZSBlobResultSegment * __AZSNullable))completionHandler;
 
 @end
+
+AZS_ASSUME_NONNULL_END
