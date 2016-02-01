@@ -165,6 +165,56 @@ void AZSBlobOutputStreamRunLoopSourcePerformRoutine (void *info)
     return self;
 }
 
+-(instancetype)initToPageBlob:(AZSCloudPageBlob *)pageBlob totalBlobSize:(NSNumber *)totalBlobSize initialSequenceNumber:(NSNumber *)initialSequenceNumber accessCondition:(AZSAccessCondition *)accessCondition requestOptions:(AZSBlobRequestOptions *)requestOptions operationContext:(AZSOperationContext *)operationContext
+{
+    // A designated initializer must make a super call to a designated initializer of the super class.
+    uint8_t temp;
+    self = [super initToBuffer:&temp capacity:0];
+    if (self)
+    {
+        _blobUploadHelper = [[AZSBlobUploadHelper alloc] initToPageBlob:pageBlob totalBlobSize:totalBlobSize initialSequenceNumber:initialSequenceNumber accessCondition:accessCondition requestOptions:requestOptions operationContext:operationContext completionHandler:nil];
+        _isStreamOpen = NO;
+        _isStreamClosing = NO;
+        _isStreamClosed = NO;
+        CFRunLoopSourceContext    context = {0, (__bridge void *)(self), NULL, NULL, NULL, NULL, NULL,
+            &AZSBlobOutputStreamRunLoopSourceScheduleRoutine,
+            AZSBlobOutputStreamRunLoopSourceCancelRoutine,
+            AZSBlobOutputStreamRunLoopSourcePerformRoutine};
+        _runLoopSource = CFRunLoopSourceCreate(NULL, 0, &context);
+        _runLoopsRegistered = [NSMutableArray arrayWithCapacity:1];
+        _waitingOnCaller = NO;
+        _delegate = self;
+        _hasStreamOpenEventFired = NO;
+        _hasStreamErrorEventFired = NO;
+    }
+    return self;
+}
+
+-(instancetype)initToAppendBlob:(AZSCloudAppendBlob *)appendBlob createNew:(BOOL)createNew accessCondition:(AZSAccessCondition *)accessCondition requestOptions:(AZSBlobRequestOptions *)requestOptions operationContext:(AZSOperationContext *)operationContext
+{
+    // A designated initializer must make a super call to a designated initializer of the super class.
+    uint8_t temp;
+    self = [super initToBuffer:&temp capacity:0];
+    if (self)
+    {
+        _blobUploadHelper = [[AZSBlobUploadHelper alloc] initToAppendBlob:appendBlob createNew:createNew accessCondition:accessCondition requestOptions:requestOptions operationContext:operationContext completionHandler:nil];
+        _isStreamOpen = NO;
+        _isStreamClosing = NO;
+        _isStreamClosed = NO;
+        CFRunLoopSourceContext    context = {0, (__bridge void *)(self), NULL, NULL, NULL, NULL, NULL,
+            &AZSBlobOutputStreamRunLoopSourceScheduleRoutine,
+            AZSBlobOutputStreamRunLoopSourceCancelRoutine,
+            AZSBlobOutputStreamRunLoopSourcePerformRoutine};
+        _runLoopSource = CFRunLoopSourceCreate(NULL, 0, &context);
+        _runLoopsRegistered = [NSMutableArray arrayWithCapacity:1];
+        _waitingOnCaller = NO;
+        _delegate = self;
+        _hasStreamOpenEventFired = NO;
+        _hasStreamErrorEventFired = NO;
+    }
+    return self;
+}
+
 -(void)setDelegate:(id<NSStreamDelegate>)delegate
 {
     if (delegate == nil)
@@ -204,8 +254,11 @@ void AZSBlobOutputStreamRunLoopSourcePerformRoutine (void *info)
 -(void)open
 {
     [self.blobUploadHelper.operationContext logAtLevel:AZSLogLevelDebug withMessage:@"Called open."];
-    self.isStreamOpen = YES;
-    [self fireStreamEvent];
+    
+    [self.blobUploadHelper openWithCompletionHandler:^(BOOL success) {
+        self.isStreamOpen = success;
+        [self fireStreamEvent];
+    }];
 }
 
 
@@ -252,6 +305,7 @@ void AZSBlobOutputStreamRunLoopSourcePerformRoutine (void *info)
     
     self.isStreamClosed = YES;
     self.isStreamClosing = NO;
+    [self fireStreamEvent];
 }
 
 // TODO: NSStreamStatusError
@@ -270,7 +324,7 @@ void AZSBlobOutputStreamRunLoopSourcePerformRoutine (void *info)
     {
         return NSStreamStatusAtEnd;
     }
-    if (![self.blobUploadHelper allBlocksUploaded])
+    if (![self.blobUploadHelper allDataUploaded])
     {
         return NSStreamStatusWriting;
     }
