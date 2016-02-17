@@ -15,7 +15,6 @@
 // </copyright>
 // -----------------------------------------------------------------------------------------
 
-#import <CommonCrypto/CommonDigest.h>
 #import "AZSCloudPageBlob.h"
 #import "AZSStorageUri.h"
 #import "AZSBlobProperties.h"
@@ -28,24 +27,25 @@
 #import "AZSBlobResponseParser.h"
 #import "AZSExecutor.h"
 #import "AZSErrors.h"
+#import "AZSUtil.h"
 
 @implementation AZSCloudPageBlob
 
-- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl
+- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl error:(NSError **)error
 {
-    return [self initWithUrl:blobAbsoluteUrl credentials:nil snapshotTime:nil];
+    return [self initWithUrl:blobAbsoluteUrl credentials:nil snapshotTime:nil error:error];
 }
-- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl credentials:(AZSStorageCredentials *)credentials snapshotTime:(NSString *)snapshotTime
+- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl credentials:(AZSStorageCredentials *)credentials snapshotTime:(NSString *)snapshotTime error:(NSError **)error
 {
-    return [self initWithStorageUri:[[AZSStorageUri alloc] initWithPrimaryUri:blobAbsoluteUrl] credentials:credentials snapshotTime:snapshotTime];
+    return [self initWithStorageUri:[[AZSStorageUri alloc] initWithPrimaryUri:blobAbsoluteUrl] credentials:credentials snapshotTime:snapshotTime error:error];
 }
-- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri
+- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri error:(NSError **)error
 {
-    return [self initWithStorageUri:blobAbsoluteUri credentials:nil snapshotTime:nil];
+    return [self initWithStorageUri:blobAbsoluteUri credentials:nil snapshotTime:nil error:error];
 }
-- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri credentials:(AZSStorageCredentials *)credentials snapshotTime:(NSString *)snapshotTime
+- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri credentials:(AZSStorageCredentials *)credentials snapshotTime:(NSString *)snapshotTime error:(NSError **)error
 {
-    self = [super initWithStorageUri:blobAbsoluteUri credentials:credentials snapshotTime:snapshotTime];
+    self = [super initWithStorageUri:blobAbsoluteUri credentials:credentials snapshotTime:snapshotTime error:error];
     if (self)
     {
         self.properties.blobType = AZSBlobTypePageBlob;
@@ -87,16 +87,16 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory createPageBlobWithSize:totalBlobSize sequenceNumber:(sequenceNumber ?: [NSNumber numberWithInt:0]) blobProperties:self.properties cloudMetadata:self.metadata accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory createPageBlobWithSize:totalBlobSize sequenceNumber:(sequenceNumber ?: [NSNumber numberWithInt:0]) blobProperties:self.properties cloudMetadata:self.metadata accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -110,9 +110,49 @@
     }];
     
     [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
-     {
-         completionHandler(error);
-     }];
+    {
+        completionHandler(error);
+    }];
+}
+
+-(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize completionHandler:(void (^)(NSError * _Nullable, BOOL))completionHandler
+{
+    [self createIfNotExistsWithSize:totalBlobSize sequenceNumber:nil accessCondition:nil requestOptions:nil operationContext:nil completionHandler:completionHandler];
+}
+
+-(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize sequenceNumber:(NSNumber *)sequenceNumber completionHandler:(void (^)(NSError * _Nullable, BOOL))completionHandler
+{
+    [self createIfNotExistsWithSize:totalBlobSize sequenceNumber:sequenceNumber accessCondition:nil requestOptions:nil operationContext:nil completionHandler:completionHandler];
+}
+
+-(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize sequenceNumber:(NSNumber *)sequenceNumber accessCondition:(AZSAccessCondition *)accessCondition requestOptions:(AZSBlobRequestOptions *)requestOptions operationContext:(AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * _Nullable, BOOL))completionHandler
+{
+    [self existsWithAccessCondition:nil requestOptions:requestOptions operationContext:operationContext completionHandler:^(NSError *error, BOOL exists) {
+        if (error)
+        {
+            completionHandler(error, NO);
+        }
+        else
+        {
+            if (exists)
+            {
+                completionHandler(nil, NO);
+            }
+            else
+            {
+                [self createWithSize:totalBlobSize sequenceNumber:sequenceNumber accessCondition:accessCondition requestOptions:requestOptions operationContext:operationContext completionHandler:^(NSError *error) {
+                    if (error)
+                    {
+                        completionHandler(error, NO);
+                    }
+                    else
+                    {
+                        completionHandler(nil, YES);
+                    }
+                }];
+            }
+        }
+    }];
 }
 
 -(void)uploadPagesWithData:(NSData *)data startOffset:(NSNumber *)startOffset contentMD5:(NSString *)contentMD5 completionHandler:(void (^)(NSError *))completionHandler
@@ -127,23 +167,21 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     if (requestOptions.useTransactionalMD5 && !(contentMD5))
     {
-        unsigned char md5Bytes[CC_MD5_DIGEST_LENGTH];
-        CC_MD5(data.bytes, (CC_LONG) data.length, md5Bytes);
-        contentMD5 = [[[NSData alloc] initWithBytes:md5Bytes length:CC_MD5_DIGEST_LENGTH] base64EncodedStringWithOptions:0];
+        contentMD5 = [AZSUtil calculateMD5FromData:data];
     }
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory putPagesWithPageRange:(NSMakeRange(startOffset.longLongValue, data.length)) clear:NO contentMD5:contentMD5 accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory putPagesWithPageRange:(NSMakeRange(startOffset.longLongValue, data.length)) clear:NO contentMD5:contentMD5 accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -158,9 +196,9 @@
     [command setSource:data];
     
     [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
-     {
-         completionHandler(error);
-     }];
+    {
+        completionHandler(error);
+    }];
     return;
 }
 
@@ -176,16 +214,16 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory putPagesWithPageRange:range clear:YES contentMD5:nil accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory putPagesWithPageRange:range clear:YES contentMD5:nil accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -198,9 +236,9 @@
     }];
     
     [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
-     {
-         completionHandler(error);
-     }];
+    {
+        completionHandler(error);
+    }];
     return;
 }
 
@@ -221,16 +259,16 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory getPageRangesWithRange:range snapshotTime:self.snapshotTime accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory getPageRangesWithRange:range snapshotTime:self.snapshotTime accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -267,16 +305,16 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory resizePageBlobWithSize:totalBlobSize accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory resizePageBlobWithSize:totalBlobSize accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -302,9 +340,9 @@
     }];
     
     [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
-     {
-         completionHandler(error);
-     }];
+    {
+        completionHandler(error);
+    }];
 }
 
 -(void)setSequenceNumberWithNumber:(NSNumber *)newSequenceNumber useMaximum:(BOOL)useMaximum completionHandler:(void (^)(NSError * __AZSNullable))completionHandler
@@ -319,16 +357,16 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory setPageBlobSequenceNumberWithNewSequenceNumber:newSequenceNumber isIncrement:NO useMaximum:useMaximum accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory setPageBlobSequenceNumberWithNewSequenceNumber:newSequenceNumber isIncrement:NO useMaximum:useMaximum accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -353,9 +391,9 @@
     }];
     
     [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
-     {
-         completionHandler(error);
-     }];
+    {
+        completionHandler(error);
+    }];
 }
 
 -(void)incrementSequenceNumberWithCompletionHandler:(void (^)(NSError * __AZSNullable))completionHandler
@@ -369,16 +407,16 @@
         operationContext = [[AZSOperationContext alloc] init];
     }
     AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
+    AZSStorageCommand *command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
-     {
-         return [AZSBlobRequestFactory setPageBlobSequenceNumberWithNewSequenceNumber:0 isIncrement:YES useMaximum:NO accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
-     }];
+    {
+        return [AZSBlobRequestFactory setPageBlobSequenceNumberWithNewSequenceNumber:0 isIncrement:YES useMaximum:NO accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+    }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
     
-    [command setPreProcessResponse:^id(NSHTTPURLResponse * urlResponse, AZSRequestResult * requestResult, AZSOperationContext * operationContext) {
+    [command setPreProcessResponse:^id(NSHTTPURLResponse *urlResponse, AZSRequestResult *requestResult, AZSOperationContext *operationContext) {
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
@@ -403,10 +441,9 @@
     }];
     
     [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
-     {
-         completionHandler(error);
-     }];
+    {
+        completionHandler(error);
+    }];
 }
-
 
 @end

@@ -72,6 +72,7 @@
 @interface AZSGetPageRangesResponse : NSObject
 
 +(NSArray *)parseGetPageRangesResponseWithData:(NSData *)data operationContext:(AZSOperationContext *)operationContext error:(NSError **)error;
+
 @end
 
 @interface AZSBlobResponseParser : NSObject
@@ -86,6 +87,5 @@
 +(NSNumber *)getSequenceNumberWithResponse:(NSHTTPURLResponse *)response;
 +(NSNumber *)getAppendCommittedBlockCountWithResponse:(NSHTTPURLResponse *)response;
 +(NSNumber *)getAppendPositionWithResponse:(NSHTTPURLResponse *)response;
-
 
 @end

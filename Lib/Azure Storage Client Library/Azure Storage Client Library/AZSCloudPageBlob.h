@@ -27,7 +27,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @param blobAbsoluteUrl The absolute URL to the blob.
  @return The newly allocated instance.
  */
-- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl;
+- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl error:(NSError **)error;
 
 /** Initializes a newly allocated AZSCloudPageBlob object
  
@@ -36,14 +36,14 @@ AZS_ASSUME_NONNULL_BEGIN
  @param snapshotTime The timestamp of the intended snapshot.  If nil, this AZSCloudPageBlob object refers to the actual blob, not a snapshot.
  @return The newly allocated instance.
  */
-- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime;
+- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime error:(NSError **)error;
 
 /** Initializes a newly allocated AZSCloudPageBlob object
  
  @param blobAbsoluteUri The absolute URL to the blob.
  @return The newly allocated instance.
  */
-- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri;
+- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri error:(NSError **)error;
 
 /** Initializes a newly allocated AZSCloudPageBlob object
  
@@ -52,7 +52,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @param snapshotTime The timestamp of the intended snapshot.  If nil, this AZSCloudPageBlob object refers to the actual blob, not a snapshot.
  @return The newly allocated instance.
  */
-- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime AZS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime error:(NSError **)error AZS_DESIGNATED_INITIALIZER;
 
 /** Initializes a newly allocated AZSCloudPageBlob object
  
@@ -214,6 +214,50 @@ AZS_ASSUME_NONNULL_BEGIN
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
  */
 -(void)createWithSize:(NSNumber *)totalBlobSize sequenceNumber:(AZSNullable NSNumber *)sequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable))completionHandler;
+
+/** Creates the page blob on the service.
+ 
+ Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
+ This method does the creation.
+ 
+ @param totalBlobSize The total size of the blob.  This must be known at creation time for page blobs.
+ @param completionHandler The block of code to execute when the create call completes.
+ | Parameter name | Description |
+ |----------------|-------------|
+ |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ */
+-(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
+
+/** Creates the page blob on the service.
+ 
+ Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
+ This method does the creation.
+ 
+ @param totalBlobSize The total size of the blob.  This must be known at creation time for page blobs.
+ @param sequenceNumber The intiial sequence number for the blob.  If nil, a default value will be used.
+ @param completionHandler The block of code to execute when the create call completes.
+ | Parameter name | Description |
+ |----------------|-------------|
+ |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ */
+-(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize sequenceNumber:(AZSNullable NSNumber *)sequenceNumber completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
+
+/** Creates the page blob on the service.
+ 
+ Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
+ This method does the creation.
+ 
+ @param totalBlobSize The total size of the blob.  This must be known at creation time for page blobs.
+ @param sequenceNumber The intiial sequence number for the blob.  If nil, a default value will be used.
+ @param accessCondition The access condition for the request.
+ @param requestOptions The options to use for the request.
+ @param operationContext The operation context to use for the call.
+ @param completionHandler The block of code to execute when the create call completes.
+ | Parameter name | Description |
+ |----------------|-------------|
+ |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ */
+-(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize sequenceNumber:(AZSNullable NSNumber *)sequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 
 /** Sets the total blob size.
  

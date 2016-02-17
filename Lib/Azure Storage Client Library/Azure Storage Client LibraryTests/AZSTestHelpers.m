@@ -56,9 +56,10 @@
         }
     };
     
-    SEL selector = NSSelectorFromString(@"listBlobsSegmentedWithContinuationToken:prefix:useFlatBlobListing:blobListingDetails:maxResults:completionHandler:");
+//    SEL selector = NSSelectorFromString(@"listBlobsSegmentedWithContinuationToken:prefix:useFlatBlobListing:blobListingDetails:maxResults:completionHandler:");
     
-    if ([objectToList respondsToSelector:selector])
+//    if ([objectToList respondsToSelector:selector])
+    if ([objectToList isKindOfClass:[AZSCloudBlobContainer class]])
     {
         // It's a container
         AZSCloudBlobContainer *container = (AZSCloudBlobContainer *)objectToList;
