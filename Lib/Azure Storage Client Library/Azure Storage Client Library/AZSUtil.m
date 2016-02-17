@@ -238,4 +238,11 @@
     return context;
 }
 
++(NSString *)calculateMD5FromData:(NSData *)data
+{
+    unsigned char md5Bytes[CC_MD5_DIGEST_LENGTH];
+    CC_MD5(data.bytes, (CC_LONG) data.length, md5Bytes);
+    return [[[NSData alloc] initWithBytes:md5Bytes length:CC_MD5_DIGEST_LENGTH] base64EncodedStringWithOptions:0];
+}
+
 @end

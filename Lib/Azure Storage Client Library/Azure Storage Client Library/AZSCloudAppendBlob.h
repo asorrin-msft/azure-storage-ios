@@ -27,7 +27,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @param blobAbsoluteUrl The absolute URL to the blob.
  @return The newly allocated instance.
  */
-- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl;
+- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl error:(NSError **)error;
 
 /** Initializes a newly allocated AZSCloudAppendBlob object
  
@@ -36,23 +36,23 @@ AZS_ASSUME_NONNULL_BEGIN
  @param snapshotTime The timestamp of the intended snapshot.  If nil, this AZSCloudAppendBlob object refers to the actual blob, not a snapshot.
  @return The newly allocated instance.
  */
-- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime;
+- (instancetype)initWithUrl:(NSURL *)blobAbsoluteUrl credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime error:(NSError **)error;
 
 /** Initializes a newly allocated AZSCloudAppendBlob object
  
- @param blobAbsoluteUri The absolute URL to the blob.
+ @param blobAbsoluteUri An AZSStorageUri representing the absolute URL to the blob.
  @return The newly allocated instance.
  */
-- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri;
+- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri error:(NSError **)error;
 
 /** Initializes a newly allocated AZSCloudAppendBlob object
  
- @param blobAbsoluteUri The absolute URL to the blob.
+ @param blobAbsoluteUri An AZSStorageUri representing the absolute URL to the blob.
  @param credentials The AZSStorageCredentials used to authenticate to the blob
  @param snapshotTime The timestamp of the intended snapshot.  If nil, this AZSCloudAppendBlob object refers to the actual blob, not a snapshot.
  @return The newly allocated instance.
  */
-- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime AZS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithStorageUri:(AZSStorageUri *)blobAbsoluteUri credentials:(AZSNullable AZSStorageCredentials *)credentials snapshotTime:(AZSNullable NSString *)snapshotTime error:(NSError **)error AZS_DESIGNATED_INITIALIZER;
 
 /** Initializes a newly allocated AZSCloudAppendBlob object
  
@@ -73,7 +73,7 @@ AZS_ASSUME_NONNULL_BEGIN
 
 /** Creates the append blob on the service.
  
- Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
+ Unlike block blobs, append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
  
  @param completionHandler The block of code to execute when the delete call completes.
@@ -85,7 +85,7 @@ AZS_ASSUME_NONNULL_BEGIN
 
 /** Creates the append blob on the service.
  
- Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
+ Unlike block blobs, append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
  
  @param accessCondition The access condition for the request.
@@ -97,6 +97,33 @@ AZS_ASSUME_NONNULL_BEGIN
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
  */
 -(void)createWithAccessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable))completionHandler;
+
+/** Creates the append blob on the service.
+ 
+ Unlike block blobs, append blobs must be explicitly created on the service before data can be written.
+ This method does the creation.
+ 
+ @param completionHandler The block of code to execute when the delete call completes.
+ | Parameter name | Description |
+ |----------------|-------------|
+ |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ */
+-(void)createIfNotExistsWithCompletionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
+
+/** Creates the append blob on the service.
+ 
+ Unlike block blobs, append blobs must be explicitly created on the service before data can be written.
+ This method does the creation.
+ 
+ @param accessCondition The access condition for the request.
+ @param requestOptions The options to use for the request.
+ @param operationContext The operation context to use for the call.
+ @param completionHandler The block of code to execute when the delete call completes.
+ | Parameter name | Description |
+ |----------------|-------------|
+ |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ */
+-(void)createIfNotExistsWithAccessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 
 /** Appends a block of data to the append blob.
  

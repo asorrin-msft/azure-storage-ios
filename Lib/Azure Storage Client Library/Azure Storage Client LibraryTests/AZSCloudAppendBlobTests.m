@@ -16,11 +16,11 @@
 // -----------------------------------------------------------------------------------------
 
 #import <XCTest/XCTest.h>
-#import <CommonCrypto/CommonDigest.h>
 #import "AZSBlobTestBase.h"
 #import "Azure_Storage_Client_Library.h"
 #import "AZSTestHelpers.h"
 #import "AZSTestSemaphore.h"
+#import "AZSUtil.h"
 
 @interface AZSCloudAppendBlobTests : AZSBlobTestBase
 @property NSString *containerName;
@@ -83,6 +83,34 @@
                 XCTAssertNil(error, @"Error in blob exists.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
                 XCTAssertTrue(exists, @"Blob doesn't exist when it should.");
                 [semaphore signal];
+            }];
+        }];
+    }];
+    [semaphore wait];
+}
+
+-(void)testCreateIfNotExists
+{
+    AZSTestSemaphore *semaphore = [[AZSTestSemaphore alloc] init];
+    
+    AZSCloudAppendBlob *appendBlob = [self.blobContainer appendBlobReferenceFromName:@"appendBlob"];
+    
+    [appendBlob existsWithCompletionHandler:^(NSError *error, BOOL exists) {
+        XCTAssertNil(error, @"Error in blob exists.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
+        XCTAssertFalse(exists, @"Blob exists when it shouldn't.");
+        [appendBlob createIfNotExistsWithCompletionHandler:^(NSError *error, BOOL created) {
+            XCTAssertNil(error, @"Error in blob creation.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
+            XCTAssertTrue(created, @"Blob creation incorrectly returned.");
+            
+            [appendBlob createIfNotExistsWithCompletionHandler:^(NSError *error, BOOL created) {
+                XCTAssertNil(error, @"Error in blob creation.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
+                XCTAssertFalse(created, @"Blob creation incorrectly returned.");
+
+                [appendBlob existsWithCompletionHandler:^(NSError *error, BOOL exists) {
+                    XCTAssertNil(error, @"Error in blob exists.  Error code = %ld, error domain = %@, error userinfo = %@", (long)error.code, error.domain, error.userInfo);
+                    XCTAssertTrue(exists, @"Blob doesn't exist when it should.");
+                    [semaphore signal];
+                }];
             }];
         }];
     }];
@@ -201,9 +229,7 @@
     unsigned int randSeed = (unsigned int)time(NULL);
     NSMutableData *sampleData = [AZSTestHelpers generateSampleDataWithSeed:&randSeed length:1000];
     
-    unsigned char md5Bytes[CC_MD5_DIGEST_LENGTH];
-    CC_MD5(sampleData.bytes, (CC_LONG) sampleData.length, md5Bytes);
-    NSString *contentMD5 = [[[NSData alloc] initWithBytes:md5Bytes length:CC_MD5_DIGEST_LENGTH] base64EncodedStringWithOptions:0];
+    NSString *contentMD5 = [AZSUtil calculateMD5FromData:sampleData];
     NSString *badContentMD5 = @"Sgb7ewkGDTH0lshZ0Kwh/w==";  // This should be syntactically valid, but it's for a random input data.
     
     AZSCloudAppendBlob *appendBlob = [self.blobContainer appendBlobReferenceFromName:@"appendBlob"];

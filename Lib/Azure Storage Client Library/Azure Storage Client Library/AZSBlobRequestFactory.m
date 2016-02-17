@@ -469,8 +469,18 @@
     NSMutableURLRequest *request = [AZSRequestFactory putRequestWithUrlComponents:urlComponents timeout:timeout];
     
     [AZSRequestFactory applyLeaseIdToRequest:request condition:accessCondition];
+    unsigned long endByte;
+    if (pageRange.length >= 1)
+    {
+        endByte = (unsigned long)(pageRange.location + pageRange.length - 1);
+    }
+    else
+    {
+        endByte = pageRange.location;
+    }
+    
     [request setValue:[NSString stringWithFormat:AZSCQueryTemplateBytes, (unsigned long)pageRange.location, (unsigned long)(pageRange.location + pageRange.length - 1)] forHTTPHeaderField:AZSCHeaderRange];
-
+        
     if (clear)
     {
         [request setValue:@"0" forHTTPHeaderField:AZSCContentLength];
@@ -568,7 +578,6 @@
     return request;
 }
 
-
 +(void) addBlobPropertiesToRequest:(NSMutableURLRequest*)request properties:(AZSBlobProperties*)blobProperties
 {
     if (blobProperties)
@@ -622,12 +631,12 @@
 
 +(void) addTotalContentSizeToRequest:(NSMutableURLRequest *)request size:(NSNumber *)size
 {
-    [AZSUtil addOptionalHeaderToRequest:request header:@"x-ms-blob-content-length" intValue:size];
+    [AZSUtil addOptionalHeaderToRequest:request header:AZSCHeaderBlobContentLength intValue:size];
 }
 
 +(void) addSequenceNumberToRequest:(NSMutableURLRequest *)request sequenceNumber:(NSNumber *)sequenceNumber
 {
-    [AZSUtil addOptionalHeaderToRequest:request header:@"x-ms-blob-sequence-number" intValue:sequenceNumber];
+    [AZSUtil addOptionalHeaderToRequest:request header:AZSCHeaderBlobSequenceNumber intValue:sequenceNumber];
 }
 
 +(void) applySequenceNumberConditionToRequest:(NSMutableURLRequest *)request condition:(AZSAccessCondition *)accessCondition
@@ -636,13 +645,13 @@
         case AZSSequenceNumberOperatorNone:
             break;
         case AZSSequenceNumberOperatorLessThanOrEqualTo:
-            [request setValue:accessCondition.sequenceNumber.stringValue forHTTPHeaderField:@"x-ms-if-sequence-number-le"];
+            [request setValue:accessCondition.sequenceNumber.stringValue forHTTPHeaderField:AZSCHeaderIfSequenceNumberLE];
             break;
         case AZSSequenceNumberOperatorEqualTo:
-            [request setValue:accessCondition.sequenceNumber.stringValue forHTTPHeaderField:@"x-ms-if-sequence-number-eq"];
+            [request setValue:accessCondition.sequenceNumber.stringValue forHTTPHeaderField:AZSCHeaderIfSequenceNumberEQ];
             break;
         case AZSSequenceNumberOperatorLessThan:
-            [request setValue:accessCondition.sequenceNumber.stringValue forHTTPHeaderField:@"x-ms-if-sequence-number-lt"];
+            [request setValue:accessCondition.sequenceNumber.stringValue forHTTPHeaderField:AZSCHeaderIfSequenceNumberLT];
             break;
         default:
             break;
@@ -653,11 +662,11 @@
 {
     if (accessCondition.maxSize)
     {
-        [request setValue:accessCondition.maxSize.stringValue forHTTPHeaderField:@"x-ms-blob-condition-maxsize"];
+        [request setValue:accessCondition.maxSize.stringValue forHTTPHeaderField:AZSCHeaderBlobConditionMaxSize];
     }
     if (accessCondition.appendPosition)
     {
-        [request setValue:accessCondition.appendPosition.stringValue forHTTPHeaderField:@"x-ms-blob-condition-appendpos"];
+        [request setValue:accessCondition.appendPosition.stringValue forHTTPHeaderField:AZSCHeaderBlobConditionAppendPos];
     }
 }
 
