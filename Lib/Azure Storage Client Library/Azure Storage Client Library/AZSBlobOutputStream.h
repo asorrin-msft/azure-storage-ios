@@ -77,9 +77,9 @@ AZS_ASSUME_NONNULL_BEGIN
 - (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode;
 
 // Specific blob methods:
--(instancetype)initToBlockBlob:(AZSCloudBlockBlob *)blockBlob accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext AZS_DESIGNATED_INITIALIZER;
--(instancetype)initToPageBlob:(AZSCloudPageBlob *)pageBlob totalBlobSize:(AZSNullable NSNumber *)totalBlobSize initialSequenceNumber:(AZSNullable NSNumber *)initialSequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext AZS_DESIGNATED_INITIALIZER;
--(instancetype)initToAppendBlob:(AZSCloudAppendBlob *)appendBlob createNew:(BOOL)createNew accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext AZS_DESIGNATED_INITIALIZER;
+-(instancetype)initToBlockBlob:(AZSCloudBlockBlob *)blockBlob accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext;
+-(instancetype)initToPageBlob:(AZSCloudPageBlob *)pageBlob totalBlobSize:(AZSNullable NSNumber *)totalBlobSize initialSequenceNumber:(AZSNullable NSNumber *)initialSequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext;
+-(instancetype)initToAppendBlob:(AZSCloudAppendBlob *)appendBlob createNew:(BOOL)createNew accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext;
 
 @end
 

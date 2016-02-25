@@ -50,7 +50,6 @@
 @property NSNumber *totalPageBlobSize;
 @property NSNumber *initialPageBlobSequenceNumber;
 
-
 @end
 
 @interface AZSBlobUploadHelper()
@@ -73,13 +72,13 @@
     {
         _underlyingBlob = blockBlob;
         _blobType = AZSBlobTypeBlockBlob;
-        _dataBuffer = [NSMutableData dataWithCapacity:AZSCMaxBlockSize];  //TODO: This should be the max buffer size.
+        _dataBuffer = [NSMutableData dataWithCapacity:AZSCMaxBlockSize];  //TODO: This should be the user-settable.
         _blockIDs = [NSMutableArray arrayWithCapacity:10];
         _maxOpenUploads = requestOptions.parallelismFactor;
         _blockUploadSemaphore = dispatch_semaphore_create(self.maxOpenUploads);
         _streamWaiting = NO;
         _uploadLock = [[NSObject alloc] init];
-        _accessCondition = accessCondition ? accessCondition : [[AZSAccessCondition alloc] init];
+        _accessCondition = accessCondition ?: [[AZSAccessCondition alloc] init];
         _requestOptions = requestOptions;
         _operationContext = operationContext;
         _completionHandler = completionHandler;
@@ -100,12 +99,12 @@
     {
         _underlyingBlob = pageBlob;
         _blobType = AZSBlobTypePageBlob;
-        _dataBuffer = [NSMutableData dataWithCapacity:AZSCMaxBlockSize];  //TODO: This should be the max buffer size.
+        _dataBuffer = [NSMutableData dataWithCapacity:AZSCMaxBlockSize];  //TODO: This should be the user-settable.
         _maxOpenUploads = requestOptions.parallelismFactor;
         _blockUploadSemaphore = dispatch_semaphore_create(self.maxOpenUploads);
         _streamWaiting = NO;
         _uploadLock = [[NSObject alloc] init];
-        _accessCondition = accessCondition ? accessCondition : [[AZSAccessCondition alloc] init];
+        _accessCondition = accessCondition ?: [[AZSAccessCondition alloc] init];
         _requestOptions = requestOptions;
         _operationContext = operationContext;
         _completionHandler = completionHandler;
@@ -131,12 +130,12 @@
     {
         _underlyingBlob = appendBlob;
         _blobType = AZSBlobTypeAppendBlob;
-        _dataBuffer = [NSMutableData dataWithCapacity:AZSCMaxBlockSize];  //TODO: This should be the max buffer size.
-        _maxOpenUploads = 1;//requestOptions.parallelismFactor;  //TODO: 1?
+        _dataBuffer = [NSMutableData dataWithCapacity:AZSCMaxBlockSize];  //TODO: This should be the user-settable.
+        _maxOpenUploads = 1;//requestOptions.parallelismFactor;  //TODO: Investigate if it ever makes sense for this to be anything other than 1.
         _blockUploadSemaphore = dispatch_semaphore_create(self.maxOpenUploads);
         _streamWaiting = NO;
         _uploadLock = [[NSObject alloc] init];
-        _accessCondition = accessCondition ? accessCondition : [[AZSAccessCondition alloc] init];
+        _accessCondition = accessCondition ?: [[AZSAccessCondition alloc] init];
         _requestOptions = requestOptions;
         _operationContext = operationContext;
         _completionHandler = completionHandler;
@@ -149,7 +148,6 @@
     }
     return self;
 }
-
 
 -(BOOL)hasSpaceAvailable
 {
@@ -171,7 +169,7 @@
     }
 }
 
--(NSInteger)write:(const uint8_t *)buffer maxLength:(NSUInteger)length completionHandler:(void(^)())completionHandler
+-(NSInteger)write:(const uint8_t *)buffer maxLength:(NSUInteger)maxLength completionHandler:(void(^)())completionHandler
 {
     if (self.streamingError)
     {
@@ -182,9 +180,9 @@
     NSUInteger maxSizePerBlock = AZSCMaxBlockSize;
     int bytesCopied = 0;
     
-    while (bytesCopied < length)
+    while (bytesCopied < maxLength)
     {
-        NSUInteger bytesToAppend = MIN(length - bytesCopied, maxSizePerBlock - [self.dataBuffer length]);
+        NSUInteger bytesToAppend = MIN(maxLength - bytesCopied, maxSizePerBlock - [self.dataBuffer length]);
         [self.dataBuffer appendBytes:(buffer + bytesCopied) length:bytesToAppend];
         bytesCopied += bytesToAppend;
         
@@ -194,7 +192,7 @@
         }
     }
     
-    return length;
+    return maxLength;
 }
 
 // TODO: Consider having this method fail, rather than block, in the cannot-acquire-semaphore case.

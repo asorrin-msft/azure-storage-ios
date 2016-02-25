@@ -364,6 +364,7 @@ AZS_ASSUME_NONNULL_BEGIN
  This method returns an instance of AZSBlobOutputStream.  The caller can then assign a delegate and schedule the stream in a runloop
  (similar to any other NSOutputStream.)  See AZSBlobOutputStream documentation for details.
  
+ @param totalBlobSize The total blob size
  @param accessCondition The access condition for the request.
  @param requestOptions The options to use for the request.
  @param operationContext The operation context to use for the call.
@@ -377,6 +378,7 @@ AZS_ASSUME_NONNULL_BEGIN
  This method returns an instance of AZSBlobOutputStream.  The caller can then assign a delegate and schedule the stream in a runloop
  (similar to any other NSOutputStream.)  See AZSBlobOutputStream documentation for details.
  
+ @param totalBlobSize The total blob size
  @param accessCondition The access condition for the request.
  @param requestOptions The options to use for the request.
  @param operationContext The operation context to use for the call.
@@ -390,6 +392,7 @@ AZS_ASSUME_NONNULL_BEGIN
  This method returns an instance of AZSBlobOutputStream.  The caller can then assign a delegate and schedule the stream in a runloop
  (similar to any other NSOutputStream.)  See AZSBlobOutputStream documentation for details.
  
+ @param totalBlobSize The total blob size
  @param accessCondition The access condition for the request.
  @param requestOptions The options to use for the request.
  @param operationContext The operation context to use for the call.

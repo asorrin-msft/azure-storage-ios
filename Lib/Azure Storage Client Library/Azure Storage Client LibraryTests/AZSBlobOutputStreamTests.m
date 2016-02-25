@@ -183,7 +183,7 @@
             }
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 // Note: This test works with ~200 MB blobs (you can watch memory consumption, it doesn't rise that far),
@@ -205,7 +205,7 @@
             }
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 // Note: This test works with ~200 MB blobs (you can watch memory consumption, it doesn't rise that far),
@@ -233,7 +233,7 @@
             [semaphore wait];
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 
@@ -255,7 +255,7 @@
             }
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 // Note: This test works with ~200 MB blobs (you can watch memory consumption, it doesn't rise that far),
@@ -282,7 +282,7 @@
             [semaphore wait];
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 -(BOOL)runTestUploadFromStreamWithBlobSize:(NSUInteger)blobSize blobToUpload:(AZSCloudBlob *)blob uploadCall:(void (^)(NSInputStream * , AZSAccessCondition *, AZSBlobRequestOptions *, AZSOperationContext *, void(^)(NSError * error)))uploadCall
@@ -339,7 +339,7 @@
             }
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 -(void)testPageBlobFromToStreamUseExistingIterate
@@ -366,7 +366,7 @@
             [semaphore wait];
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 -(void)testPageBlobFromToStreamCreateNewIterate
@@ -388,7 +388,7 @@
             }
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 -(void)testAppendBlobFromToStreamUseExistingIterate
@@ -415,7 +415,7 @@
             [semaphore wait];
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
 
 -(void)testAppendBlobFromToStreamCreateNewIterate
@@ -437,8 +437,7 @@
             }
         }
     }
-    XCTAssertTrue(0 == failures, @"%d failure(s) detected.", failures);
+    XCTAssertEqual(0, failures, @"%d failure(s) detected.", failures);
 }
-
 
 @end

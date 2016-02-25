@@ -109,7 +109,6 @@ AZS_ASSUME_NONNULL_BEGIN
 
 -(instancetype)init AZS_DESIGNATED_INITIALIZER;
 
-
 +(instancetype) cloneWithEtag:(NSString*)etag accessCondition:(AZSNullable AZSAccessCondition*)condition;
 
 @end

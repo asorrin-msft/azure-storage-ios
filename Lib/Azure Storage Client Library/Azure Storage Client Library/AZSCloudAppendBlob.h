@@ -165,6 +165,8 @@ AZS_ASSUME_NONNULL_BEGIN
  This method returns an instance of AZSBlobOutputStream.  The caller can then assign a delegate and schedule the stream in a runloop
  (similar to any other NSOutputStream.)  See AZSBlobOutputStream documentation for details.
  
+ @param createNew YES if the blob should be created from scratch (will overwrite a pre-existing blob), NO if the blob already exists and the 
+ stream data should be appended to the end.
  @returns The created AZSBlobOutputStream, capable of writing to this blob.
  */
 - (AZSBlobOutputStream *)createOutputStreamWithCreateNew:(BOOL)createNew;
@@ -174,6 +176,8 @@ AZS_ASSUME_NONNULL_BEGIN
  This method returns an instance of AZSBlobOutputStream.  The caller can then assign a delegate and schedule the stream in a runloop
  (similar to any other NSOutputStream.)  See AZSBlobOutputStream documentation for details.
  
+ @param createNew YES if the blob should be created from scratch (will overwrite a pre-existing blob), NO if the blob already exists and the
+ stream data should be appended to the end.
  @param accessCondition The access condition for the request.
  @param requestOptions The options to use for the request.
  @param operationContext The operation context to use for the call.
