@@ -48,8 +48,8 @@ AZS_ASSUME_NONNULL_BEGIN
 
 /** Initializes a newly allocated AZSCloudBlockDirectory object
  
- @param directoryName The name of the directory.  This should be the full path to the directory, not 
- including the container name.  For example:
+ @param directoryName The name of the directory.  This should be the path to the directory,
+ relative to the container name.  For example:
  
  If the full URI to the directory is
  https://myaccount.blob.core.windows.net/mycontainer/dir1/dir2/dir3

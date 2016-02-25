@@ -285,7 +285,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
- @return The block blob object.
+ @return The newly allocated block blob object.
  */
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName;
 
@@ -300,14 +300,14 @@ AZS_ASSUME_NONNULL_BEGIN
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
  @param snapshotTime The snapshot time for the blob.  Nil means the root blob (not a snapshot).
- @return The block blob object.
+ @return The newly allocated block blob object.
  */
 - (AZSCloudBlockBlob *)blockBlobReferenceFromName:(NSString *)blobName snapshotTime:(NSString *)snapshotTime;
 
 /** Initialize a local AZSCloudBlobDirectory object
  
  @param directoryName The name of the directory
- @return The new directory object.
+ @return The newly allocated directory object.
  */
 - (AZSCloudBlobDirectory *)directoryReferenceFromName:(NSString *)directoryName;
 

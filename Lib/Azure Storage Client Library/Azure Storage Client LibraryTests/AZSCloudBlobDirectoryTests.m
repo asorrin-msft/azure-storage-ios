@@ -320,7 +320,7 @@
         
         AZSCloudBlobContainer *container = [newClient containerReferenceFromName:self.containerName];
         AZSCloudBlobDirectory *directoryA = [container directoryReferenceFromName:@"a"];
-        AZSCloudBlobDirectory *directoryAdelimInName = [container directoryReferenceFromName:(delimiter ? [@"a" stringByAppendingString:delimiter] : @"a")];
+        AZSCloudBlobDirectory *directoryADelimInName = [container directoryReferenceFromName:(delimiter ? [@"a" stringByAppendingString:delimiter] : @"a")];
         AZSCloudBlobDirectory *directoryAB = [directoryA subdirectoryReferenceFromName:@"b"];
         AZSCloudBlobDirectory *directoryABC = [directoryAB subdirectoryReferenceFromName:@"c"];
         AZSCloudBlobDirectory *directoryABCParent = [directoryABC parentReference];
@@ -335,7 +335,7 @@
         }
     
         XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a"]]), directoryA.name, @"Directory names do not match.");
-        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a"]]), directoryAdelimInName.name, @"Directory names do not match.");
+        XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a"]]), directoryADelimInName.name, @"Directory names do not match.");
         XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a",@"b"]]), directoryAB.name, @"Directory names do not match.");
         XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a",@"b",@"c"]]), directoryABC.name, @"Directory names do not match.");
         XCTAssertEqualObjects(([self appendStringsAppendFinalDelimiter:YES withDelimiter:actualDelimiter strings:@[@"a",@"b"]]), directoryABCParent.name, @"Directory names do not match.");
