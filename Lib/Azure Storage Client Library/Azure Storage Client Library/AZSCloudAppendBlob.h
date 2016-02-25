@@ -98,7 +98,7 @@ AZS_ASSUME_NONNULL_BEGIN
  */
 -(void)createWithAccessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable))completionHandler;
 
-/** Creates the append blob on the service.
+/** Creates the append blob on the service if it does not already exist.
  
  Unlike block blobs, append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
@@ -107,10 +107,11 @@ AZS_ASSUME_NONNULL_BEGIN
  | Parameter name | Description |
  |----------------|-------------|
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ |BOOL | YES if the blob was successfully created with this call.  NO if the blob already existed.|
  */
 -(void)createIfNotExistsWithCompletionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 
-/** Creates the append blob on the service.
+/** Creates the append blob on the service if it does not already exist.
  
  Unlike block blobs, append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
@@ -122,6 +123,7 @@ AZS_ASSUME_NONNULL_BEGIN
  | Parameter name | Description |
  |----------------|-------------|
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ |BOOL | YES if the blob was successfully created with this call.  NO if the blob already existed.|
  */
 -(void)createIfNotExistsWithAccessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 

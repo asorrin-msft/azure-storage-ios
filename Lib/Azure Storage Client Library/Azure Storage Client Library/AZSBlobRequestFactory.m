@@ -479,7 +479,7 @@
         endByte = pageRange.location;
     }
     
-    [request setValue:[NSString stringWithFormat:AZSCQueryTemplateBytes, (unsigned long)pageRange.location, (unsigned long)(pageRange.location + pageRange.length - 1)] forHTTPHeaderField:AZSCHeaderRange];
+    [request setValue:[NSString stringWithFormat:AZSCQueryTemplateBytes, (unsigned long)pageRange.location, (unsigned long)endByte] forHTTPHeaderField:AZSCHeaderRange];
         
     if (clear)
     {

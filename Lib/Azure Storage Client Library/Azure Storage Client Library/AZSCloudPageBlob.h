@@ -215,7 +215,7 @@ AZS_ASSUME_NONNULL_BEGIN
  */
 -(void)createWithSize:(NSNumber *)totalBlobSize sequenceNumber:(AZSNullable NSNumber *)sequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable))completionHandler;
 
-/** Creates the page blob on the service.
+/** Creates the page blob on the service if it does not already exist.
  
  Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
@@ -225,10 +225,11 @@ AZS_ASSUME_NONNULL_BEGIN
  | Parameter name | Description |
  |----------------|-------------|
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ |BOOL | YES if the blob was successfully created with this call.  NO if the blob already existed.|
  */
 -(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 
-/** Creates the page blob on the service.
+/** Creates the page blob on the service if it does not already exist.
  
  Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
@@ -239,10 +240,11 @@ AZS_ASSUME_NONNULL_BEGIN
  | Parameter name | Description |
  |----------------|-------------|
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ |BOOL | YES if the blob was successfully created with this call.  NO if the blob already existed.|
  */
 -(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize sequenceNumber:(AZSNullable NSNumber *)sequenceNumber completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 
-/** Creates the page blob on the service.
+/** Creates the page blob on the service if it does not already exist.
  
  Unlike block blobs, page and append blobs must be explicitly created on the service before data can be written.
  This method does the creation.
@@ -256,6 +258,7 @@ AZS_ASSUME_NONNULL_BEGIN
  | Parameter name | Description |
  |----------------|-------------|
  |NSError * | Nil if the operation succeeded without error, error with details about the failure otherwise.|
+ |BOOL | YES if the blob was successfully created with this call.  NO if the blob already existed.|
  */
 -(void)createIfNotExistsWithSize:(NSNumber *)totalBlobSize sequenceNumber:(AZSNullable NSNumber *)sequenceNumber accessCondition:(AZSNullable AZSAccessCondition *)accessCondition requestOptions:(AZSNullable AZSBlobRequestOptions *)requestOptions operationContext:(AZSNullable AZSOperationContext *)operationContext completionHandler:(void (^)(NSError * __AZSNullable, BOOL))completionHandler;
 

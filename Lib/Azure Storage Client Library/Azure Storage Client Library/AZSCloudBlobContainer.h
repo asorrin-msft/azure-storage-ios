@@ -324,7 +324,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the page blob (part of the URL)
- @param snapshotTime The snapshot time for the blob.  Null means the root blob (not a snapshot).
+ @param snapshotTime The snapshot time for the blob.  Nil means the root blob (not a snapshot).
  @return The new page blob object.
  */
 - (AZSCloudPageBlob *)pageBlobReferenceFromName:(NSString *)blobName snapshotTime:(NSString *)snapshotTime;
@@ -347,7 +347,7 @@ AZS_ASSUME_NONNULL_BEGIN
  @warning This method does not make a service call.  If properties, metadata, etc have been set on the service
  for this blob, this will not be reflected in the local container object.
  @param blobName The name of the block blob (part of the URL)
- @param snapshotTime The snapshot time for the blob.  Null means the root blob (not a snapshot).
+ @param snapshotTime The snapshot time for the blob.  Nil means the root blob (not a snapshot).
  @return The new block blob object.
  */
 - (AZSCloudAppendBlob *)appendBlobReferenceFromName:(NSString *)blobName snapshotTime:(NSString *)snapshotTime;
