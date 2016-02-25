@@ -364,7 +364,7 @@
 
     if (!isValid)
     {
-        return @"No URI specified for inpput AZSStorageLocationMode.";
+        return @"No URI specified for input AZSStorageLocationMode.";
     }
     
     switch (self.storageCommand.allowedStorageLocation)
