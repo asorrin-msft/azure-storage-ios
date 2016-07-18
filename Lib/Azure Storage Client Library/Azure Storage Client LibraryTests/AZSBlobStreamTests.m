@@ -93,6 +93,17 @@
     }
     
     [blobOutputStream close];
+    
+    loopSuccess = YES;
+    while (loopSuccess && blobOutputStream.streamStatus != NSStreamStatusClosed)
+    {
+        if (useCurrentRunloop) {
+            loopSuccess = [runloop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+        }
+        else {
+            [NSThread sleepForTimeInterval:.25];
+        }
+    }
     [blobOutputStream removeFromRunLoop:runloop forMode:NSDefaultRunLoopMode];
     
     // Download to Input Stream

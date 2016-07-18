@@ -64,7 +64,7 @@ void AZSBlobInputStreamRunLoopSourceScheduleRoutine (void *info, CFRunLoopRef rl
 void AZSBlobInputStreamRunLoopSourceCancelRoutine (void *info, CFRunLoopRef rl, CFStringRef mode) {}
  
 void AZSBlobInputStreamRunLoopSourcePerformRoutine (void *info)
-{
+{   
     AZSBlobInputStream *stream = (__bridge AZSBlobInputStream *)info;
     [stream.downloadBuffer.operationContext logAtLevel:AZSLogLevelDebug withMessage:@"Perform Routine called."];
     BOOL fireStreamOpenEvent = NO;

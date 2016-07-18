@@ -163,8 +163,16 @@
 
 -(void)uploadFromData:(NSData *)sourceData accessCondition:(AZSAccessCondition *)accessCondition requestOptions:(AZSBlobRequestOptions *)requestOptions operationContext:(AZSOperationContext *)operationContext completionHandler:(void (^)(NSError *))completionHandler
 {
-    NSInputStream *sourceStream = [NSInputStream inputStreamWithData:sourceData];
-    [self uploadFromStream:sourceStream accessCondition:accessCondition requestOptions:requestOptions operationContext:operationContext completionHandler:completionHandler];
+    AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
+    if (sourceData.length <= modifiedOptions.singleBlobUploadThreshold)
+    {
+        [self putBlobFromData:sourceData accessCondition:accessCondition requestOptions:modifiedOptions operationContext:operationContext completionHandler:completionHandler];
+    }
+    else
+    {
+        NSInputStream *sourceStream = [NSInputStream inputStreamWithData:sourceData];
+        [self uploadFromStream:sourceStream accessCondition:accessCondition requestOptions:requestOptions operationContext:operationContext completionHandler:completionHandler];
+    }
 }
 
 -(void)uploadFromText:(NSString *)textToUpload completionHandler:(void (^)(NSError *))completionHandler
@@ -200,34 +208,23 @@
     [self uploadFromStream:sourceStream accessCondition:accessCondition requestOptions:requestOptions operationContext:operationContext completionHandler:completionHandler];
 }
 
-// TODO: Convert the below method into an explicit 'put blob' call.
-/*
--(void)uploadFromData:(NSData *)sourceData accessCondition:(AZSAccessCondition *)accessCondition requestOptions:(AZSBlobRequestOptions *)requestOptions operationContext:(AZSOperationContext *)operationContext completionHandler:(void (^)(NSError *))completionHandler
+-(void)putBlobFromData:(NSData *)sourceData accessCondition:(AZSAccessCondition *)accessCondition requestOptions:(AZSBlobRequestOptions *)requestOptions operationContext:(AZSOperationContext *)operationContext completionHandler:(void (^)(NSError *))completionHandler
 {
-    AZSBlobRequestOptions *modifiedOptions = [[AZSBlobRequestOptions copyOptions:requestOptions] applyDefaultsFromOptions:self.client.defaultRequestOptions];
-    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri];
+    if (!operationContext)
+    {
+        operationContext = [[AZSOperationContext alloc] init];
+    }
+    AZSStorageCommand * command = [[AZSStorageCommand alloc] initWithStorageCredentials:self.client.credentials storageUri:self.storageUri operationContext:operationContext];
     
     NSString *contentMD5 = nil;
-    if (requestOptions.useTransactionalMD5 || requestOptions.storeBlobContentMD5)
+    if (requestOptions.storeBlobContentMD5)
     {
-        unsigned char md5Bytes[CC_MD5_DIGEST_LENGTH];
-        CC_MD5(sourceData.bytes, sourceData.length, md5Bytes);
-        NSString *contentMD5String = [[[NSData alloc] initWithBytes:md5Bytes length:CC_MD5_DIGEST_LENGTH] base64EncodedStringWithOptions:0];
-        
-        if (requestOptions.useTransactionalMD5)
-        {
-            contentMD5 = contentMD5String;
-        }
-        
-        if (requestOptions.storeBlobContentMD5)
-        {
-            self.properties.contentMD5 = contentMD5String;
-        }
+        contentMD5 = [AZSUtil calculateMD5FromData:sourceData];
     }
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
      {
-         return [AZSBlobRequestFactory putBlockBlobWithLength:[sourceData length] blobProperties:self.properties contentMD5:contentMD5 cloudMetadata:self.metadata AccessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+         return [AZSBlobRequestFactory putBlockBlobWithLength:[sourceData length] blobProperties:self.properties contentMD5:contentMD5 cloudMetadata:self.metadata accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
      }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
@@ -236,7 +233,7 @@
         NSError *error = [AZSResponseParser preprocessResponseWithResponse:urlResponse requestResult:requestResult operationContext:operationContext];
         if (error)
         {
-            return error;
+            return  error;
         }
         
         [AZSCloudBlob updateEtagAndLastModifiedWithResponse:urlResponse properties:self.properties updateLength:NO];
@@ -245,18 +242,13 @@
     
     [command setSource:sourceData];
     
-    if (operationContext == nil)
-    {
-        operationContext = [[AZSOperationContext alloc] init];
-    }
-    
-    [AZSExecutor ExecuteWithStorageCommand:command requestOptions:modifiedOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
+    [AZSExecutor ExecuteWithStorageCommand:command requestOptions:requestOptions operationContext:operationContext completionHandler:^(NSError *error, id result)
      {
          completionHandler(error);
      }];
     return;
 }
- */
+
 
 -(void)uploadBlockFromData:(NSData *)sourceData blockID:(NSString *)blockID completionHandler:(void (^)(NSError*))completionHandler
 {
@@ -335,7 +327,7 @@
     
     [command setBuildRequest:^ NSMutableURLRequest * (NSURLComponents *urlComponents, NSTimeInterval timeout, AZSOperationContext *operationContext)
      {
-         return [AZSBlobRequestFactory putBlockListWithLength:[sourceData length] blobProperties:self.properties contentMD5:contentMD5 cloudMetadata:self.metadata AccessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
+         return [AZSBlobRequestFactory putBlockListWithLength:[sourceData length] blobProperties:self.properties contentMD5:contentMD5 cloudMetadata:self.metadata accessCondition:accessCondition urlComponents:urlComponents timeout:timeout operationContext:operationContext];
      }];
     
     [command setAuthenticationHandler:self.client.authenticationHandler];
